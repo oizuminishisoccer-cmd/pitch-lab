@@ -90,14 +90,21 @@ textarea{resize:vertical;min-height:60px}
 /* ---------- stat 3-column (game-like) + inline editor ---------- */
 .scols{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:700px){.scols{grid-template-columns:repeat(3,1fr)}}
-.scol h4{font-size:11.5px;color:var(--tx3);letter-spacing:.08em;margin-bottom:6px;padding-left:2px}
+.scol h4{font-size:12.5px;font-weight:800;color:#aab6cc;letter-spacing:.1em;margin-bottom:7px;padding:0 2px 5px;border-bottom:1px solid var(--line)}
 .st{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:.12s}
 .st:hover{background:rgba(61,220,132,.09);border-color:rgba(61,220,132,.3)}
 .st.act{background:rgba(61,220,132,.16);border-color:rgba(61,220,132,.55)}
 .st .n{flex:1;font-size:12px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .st .dl{flex:0 0 auto;font-size:9.5px;font-weight:700;color:var(--ac);min-width:22px;text-align:right}
 .st .v{flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;min-width:32px}
-/* 素の能力値スライダー */
+/* 初期能力値設定：調整パネルは専用モーダルで開く。
+   左カラム(400px)の中に置くと3列が隣へはみ出し、1列にすると今度はPCで狭すぎるため、
+   ダイアログに出して画面幅いっぱい（最大980px・PCは3列）を使う。 */
+#dlgBase{max-width:min(980px,96vw);width:100%}
+#baseEdit{max-height:calc(88vh - 110px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:4px 8px 4px 2px;overscroll-behavior:contain}
+#baseEdit .scol h4{position:sticky;top:-4px;z-index:2;background:var(--card);margin:0 0 4px;padding:5px 2px}
+@media(min-width:760px){ #baseEdit .bs .n{width:118px;font-size:12px} #baseEdit .bs input.v{width:58px} }
 .bs{display:flex;align-items:center;gap:8px;padding:3px 6px;border-radius:8px}
 .bs:nth-child(odd){background:rgba(255,255,255,.022)}
 .bs .n{width:96px;flex:0 0 auto;font-size:11px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -266,15 +273,20 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
     <div class="grid" style="align-content:start">
 
       <div class="card">
-        <h3>1. 初期設定 <span class="sub">ポジションを押すと初期値が入ります</span></h3>
-        <div class="pitch" id="pitchSetup"></div>
-        <div class="muted" style="margin-top:8px">★＝登録ポジション。他のマスをタップで <b style="color:#dbffe9">薄い適性</b> → <b style="color:var(--ac)">濃い適性</b> → なし の順に切り替わります。</div>
-        <div class="hr"></div>
-        <label class="f"><span>選手名</span><input type="text" id="f_name" placeholder="例：J.ベリンガム【BT】"></label>
-        <div class="row">
-          <label class="f"><span>登録ポジション</span><select id="f_pos"></select></label>
-          <label class="f"><span>プレースタイル</span><select id="f_style"></select></label>
+        <h3>1. 初期能力値設定 <span class="sub">まずは登録ポジションを選択</span></h3>
+        <label class="f"><span>登録ポジション</span><select id="f_pos"></select></label>
+        <div class="muted" id="presetNote" style="margin-bottom:10px"></div>
+        <div class="btnrow">
+          <button class="btn s" id="btnPreset">ポジション初期値に戻す</button>
+          <button class="btn s p" id="btnBase">スライダー / 手入力で調整</button>
+          <button class="btn s" id="btnBelli">BTベリンガムを読込</button>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>2. 選手情報 <span class="sub">名前・プレースタイル・レベル</span></h3>
+        <label class="f"><span>選手名</span><input type="text" id="f_name" placeholder="例：J.ベリンガム【BT】"></label>
+        <label class="f"><span>プレースタイル</span><select id="f_style"></select></label>
         <div class="row">
           <label class="f"><span>身長 cm（任意）</span><input type="number" id="f_h" placeholder="—"></label>
           <label class="f"><span>体重 kg（任意）</span><input type="number" id="f_w" placeholder="—"></label>
@@ -295,27 +307,21 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       </div>
 
       <div class="card">
-        <h3>2. 素の能力値 <span class="sub">Lv.1 / 登録ポジションから自動設定</span></h3>
-        <div class="btnrow" style="margin-bottom:10px">
-          <button class="btn s" id="btnPreset">ポジション初期値に戻す</button>
-          <button class="btn s" id="btnBase">スライダー / 手入力で調整</button>
-          <button class="btn s" id="btnBelli">BTベリンガムを読込</button>
-        </div>
-        <div class="muted" id="presetNote"></div>
-        <div id="baseEdit" style="display:none;margin-top:10px"></div>
+        <h3>3. ポジション設定 <span class="sub">マスをタップして適性を設定</span></h3>
+        <div class="pitch" id="pitchSetup"></div>
+        <div class="muted" style="margin-top:8px">★＝登録ポジション（押すと初期能力値を読み込み直します）。他のマスをタップで <b style="color:#dbffe9">薄い適性</b> → <b style="color:var(--ac)">濃い適性</b> → なし の順に切り替わります。</div>
       </div>
 
       <div class="card">
-        <h3>3. ブースター <span class="sub">選手は最大2つ</span></h3>
+        <h3>4. ブースター <span class="sub">選手は最大2つ</span></h3>
         <div id="boosterBox"></div>
         <div class="muted" style="margin-top:6px">効果値はカード固有が <b>+2 / +3</b>、ブースタークラフトで後付けした分は <b>+1</b> 程度。対象は各ブースターの4項目です。</div>
       </div>
 
       <div class="card">
-        <h3>4. 監督 <span class="sub">適性数値でスカッド全員に補正</span></h3>
+        <h3>5. 監督 <span class="sub">適性数値でスカッド全員に補正</span></h3>
         <div class="row">
-          <label class="f" style="flex:2"><span>監督名（任意）</span><input type="text" id="g_name" placeholder="例：T.トゥヘル"></label>
-          <label class="f"><span>チームスタイル</span><select id="g_style"></select></label>
+          <label class="f"><span>監督名（任意）</span><input type="text" id="g_name" placeholder="例：T.トゥヘル"></label>
         </div>
         <label class="f"><span>チームスタイル適性数値</span><select id="g_apt"></select></label>
         <div id="aptTable" class="muted"></div>
@@ -324,7 +330,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       </div>
 
       <div class="card">
-        <h3>5. スキル</h3>
+        <h3>6. スキル</h3>
         <h4 style="font-size:12px;margin-bottom:6px">初期搭載スキル <span class="cnt" id="cntBase"></span><br>
           <span class="muted" style="font-weight:400">カードが最初から持っているもの・最大10個（<span style="color:#ff8ab4">ピンク＝特殊スキル</span>は後から追加できません）</span></h4>
         <div id="skillBase"></div>
@@ -337,7 +343,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 
     <div class="grid" style="align-content:start">
       <div class="card">
-        <h3>6. 能力値から育成 <span class="sub">能力名をタップするとスライダーが開きます</span></h3>
+        <h3>7. 能力値から育成 <span class="sub">能力名をタップするとスライダーが開きます</span></h3>
         <div class="ovr" style="margin-bottom:12px">
           <div>
             <div class="ovrnum" id="ovrNum">—</div>
@@ -367,11 +373,10 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       </div>
 
       <div class="card">
-        <h3>7. 保存・シェア</h3>
+        <h3>8. 保存・シェア</h3>
         <div class="btnrow">
           <button class="btn p" id="btnSave">この育成を保存</button>
           <button class="btn" id="btnShareImg">画像で保存(PNG)</button>
-          <button class="btn" id="btnShareX">Xでシェア</button>
           <button class="btn" id="btnShareTxt">シェア文をコピー</button>
           <button class="btn" id="btnShareUrl">共有リンクをコピー</button>
         </div>
@@ -408,8 +413,12 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
         <label class="f"><span>終了日</span><input type="date" id="ph_e"></label>
       </div>
       <label class="f"><span>フェーズ名</span><input type="text" id="ph_n" placeholder="第1フェーズ"></label>
+      <div class="row">
+        <label class="f"><span>開始Division</span><select id="ph_div"></select></label>
+        <label class="f"><span>開始レート</span><input type="number" id="ph_rate" placeholder="例 1500"></label>
+      </div>
       <div class="btnrow">
-        <button class="btn p" id="phSave">期間を確定</button>
+        <button class="btn p" id="phSave">期間・開始条件を確定</button>
         <button class="btn" id="phAdd">新規フェーズ</button>
         <button class="btn s d" id="phDel">削除</button>
       </div>
@@ -509,6 +518,18 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 
 <div class="toast" id="toast"></div>
 <dialog id="dlg"><div class="dlg"><div class="dlghd"><h3 id="dlgT" style="font-size:14px"></h3><button class="btn s" onclick="document.getElementById('dlg').close()">閉じる</button></div><div id="dlgB"></div></div></dialog>
+
+<dialog id="dlgBase"><div class="dlg">
+  <div class="dlghd">
+    <div><h3 style="font-size:15px">初期能力値設定 <span class="muted" id="baseHdPos"></span></h3>
+      <div class="muted" id="baseHdOvr"></div></div>
+    <div class="btnrow">
+      <button class="btn s" id="baseReset">ポジション初期値に戻す</button>
+      <button class="btn s p" id="baseClose">閉じる</button>
+    </div>
+  </div>
+  <div id="baseEdit"></div>
+</div></dialog>
 
 <script>
 /* =====================================================================
@@ -618,6 +639,10 @@ const BOOSTNAMES=Object.keys(BOOSTERS);
 const MAX_BOOSTER=2, MAX_MGR_BOOSTER=2;
 /* 監督ブースター＝スカッド全員の「能力値そのもの」を +1 するバフ。最大2つ */
 const MGR_BOOST_VAL=1;
+/* 能力値の通常上限。ブースターの上昇分だけこの値を超えられる */
+const STAT_CAP=99;
+/* 選手ブースターの効果値：スロット1はビッグタイム等の +4 まで、スロット2は +3 まで */
+const BOOST_VALS=[[1,2,3,4],[1,2,3]];
 
 /* --- 監督：チームスタイル適性数値による全体補正 ---
    [適性値, +1になる上限, +2になる上限]（それを超えると +3。40未満は補正なし） */
@@ -642,22 +667,32 @@ const FORMS=['4-3-3','4-2-3-1','4-3-2-1','4-2-2-2','4-4-2','4-1-2-3','4-1-4-1','
 const DIVS=['Div.1','Div.2','Div.3','Div.4','Div.5','Div.6','Div.7','Div.8','Div.9','Div.10','未設定'];
 
 /* --- スキルマスタ（★＝特殊スキル：後から追加できないカード固有） --- */
-const SPECIAL=new Set(['モメンタムドリブル','マグネットフィート','アクセルバースト','タップトリック',
- 'バレットヘッド','ブリッツカーブ','フェノミナルフィニッシュ','ロースクリーマー',
- 'エッジクロス','ゲームチェンジパス','ビジョナリーパス','フェノミナルパス',
- 'ロングリーチタックル','フォートレス','エアリアルフォート',
- 'ウィルパワー','GKディレクティングディフェンス','GKスピリットロア']);
+/* 特殊スキル：全21種（後から追加できないカード固有） */
+const SPECIAL=new Set([
+ /* ドリブル系 */ 'モメンタムドリブル','アクセルバースト','マグネットフィート','アタックサージ','タップトリック',
+ /* パス系   */ 'ゲームチェンジパス','エッジクロス','ビジョナリーパス','フェノミナルパス',
+ /* シュート系 */ 'フェノミナルフィニッシュ','ブリッツカーブ','バレットヘッド','ロースクリーマー','ウィルパワー',
+ /* 守備系   */ 'フォートレス','エアリアルフォート','ロングリーチタックル','シャドウハント',
+ /* GK系    */ 'GKディレクティングディフェンス','GKスピリットロア',
+ /* その他   */ 'アタックトリガー']);
+/* 条件を満たすと自動で付くスキル（現状なし） */
+const AUTO_SKILL=new Set();
 const SKILLS={
- 'ドリブル系':['シザース','ダブルタッチ','エラシコ','ルーレット','シャペウ','軸裏ターン','軸足当て','足裏コントロール','ヒールトリック','ラボーナ','モメンタムドリブル','アクセルバースト','マグネットフィート','タップトリック'],
- 'シュート系':['ヘッダー','バレットヘッド','アクロバティックシュート','ワンタッチシュート','ライジングシュート','ドロップシュート','無回転シュート','ミドルシュート','コントロールカーブ','ブリッツカーブ','コントロールループ','フェノミナルフィニッシュ','ロースクリーマー','PKキッカー'],
- 'パス系':['ワンタッチパス','スルーパス','バックスピンロブ','ピンポイントクロス','エッジクロス','アウトスピンキック','ノールックパス','ゲームチェンジパス','ビジョナリーパス','フェノミナルパス','低弾道ロブ'],
- '守備系':['マリーシア','マンマーク','チェイシング','インターセプト','ブロッカー','エアバトル','スライディングタックル','ロングリーチタックル','フォートレス','アクロバティッククリア','エアリアルフォート'],
- 'メンタル系':['ウィルパワー','キャプテンシー','スーパーサブ','闘争心'],
- 'GK系':['ロングスロー','GKロングスロー','PKストッパー','GKディレクティングディフェンス','GKスピリットロア','低弾道パントキック','高弾道パントキック']
+ 'ドリブル系':['シザーズ','ダブルタッチ','エラシコ','ルーレット','シャペウ','エッジターン','軸裏ターン','軸足当て','足裏コントロール','マリーシア',
+               'モメンタムドリブル','アクセルバースト','マグネットフィート','アタックサージ','タップトリック'],
+ 'パス系':['ヒールトリック','ワンタッチパス','スルーパス','バックスピンロブ','ピンポイントクロス','アウトスピンキック','ラボーナ','ノールックパス','低弾道ロブ','ロングスロー',
+           'ゲームチェンジパス','エッジクロス','ビジョナリーパス','フェノミナルパス'],
+ 'シュート系':['ヘッダー','コントロールカーブ','コントロールループ','ミドルシュート','無回転シュート','ドロップシュート','ライジングシュート','アクロバティックシュート','ワンタッチシュート','PKキッカー',
+               'フェノミナルフィニッシュ','ブリッツカーブ','バレットヘッド','ロースクリーマー','ウィルパワー'],
+ 'ディフェンス系':['マンマーク','チェイシング','インターセプト','ブロッカー','エアバトル','スライディングタックル','アクロバティッククリア',
+                   'フォートレス','エアリアルフォート','ロングリーチタックル','シャドウハント'],
+ 'GK系':['低弾道パントキック','高弾道パントキック','GKロングスロー','PKストッパー','GKディレクティングディフェンス','GKスピリットロア'],
+ 'その他':['キャプテンシー','スーパーサブ','闘争心','アタックトリガー']
 };
 const SKILL_CAT={}; Object.entries(SKILLS).forEach(([c,a])=>a.forEach(s=>SKILL_CAT[s]=c));
 const ALLSKILLS=Object.values(SKILLS).flat();
-const NORMALSKILLS=ALLSKILLS.filter(s=>!SPECIAL.has(s));
+/* スキル追加／在庫で狙える通常スキル */
+const NORMALSKILLS=ALLSKILLS.filter(s=>!SPECIAL.has(s)&&!AUTO_SKILL.has(s));
 </script>
 
 <script>
@@ -682,23 +717,47 @@ const W={
 const CAL=1.213;
 
 /* =====================================================================
-   ポジション別 初期値プリセット
-   ベース 70 に統一し、登録ポジションで重要な能力を 80、不要な能力を 60 に。
-   GK は GK5項目を 75、フィールド能力は低めに設定。
+   ポジション別「初期能力値設定」プリセット（Lv.1 の実データ基準）
+   直近1年のガチャ搭載カードの Lv.1 初期値をもとに作成。
+   実測アンカー：
+     CF  … BT C.ロナウド（2026/06/23搭載）
+     OMF … BT J.ベリンガム（2026/08/03搭載）
+     CB  … EP R.ファーディナンド（2026/07/27搭載）
+   この3点を基準に、各ポジションの役割に合わせて補間しています。
+   フィールド選手のGK能力は、どのカードも一律 40（3枚すべてで確認）。
    ===================================================================== */
-const BASE_STD=70, BASE_KEY=80, BASE_LOW=60, BASE_GK=75, BASE_GK_FIELD=40;
-const BASE_MIN=40, BASE_MAX=99; /* 素の能力値スライダーの範囲 */
-const KEY_W=1.8; /* このウェイト以上を「そのポジションの主要能力」とみなす */
-function makePreset(pos){
-  const w=W[pos]||{}, b={};
-  SKEY.forEach(k=>{
-    if(ISGK[k]) b[k]= pos==='GK'?BASE_GK:BASE_GK_FIELD;
-    else if(pos==='GK') b[k]= w[k]?BASE_STD:BASE_LOW;
-    else b[k]= (w[k]||0)>=KEY_W?BASE_KEY : w[k]?BASE_STD : BASE_LOW;
-  });
-  return b;
+const BASE_MIN=40, BASE_MAX=99; /* 初期能力値スライダーの範囲 */
+const GK_FIELD=40;
+/* 並びは SKEY と同じ:
+   ofs,bc,dr,bk,gp,fp,fin,hd,pk,cv, dfs,bw,ag,dfa, gks,gkc,gkl,gkp,gkd, sp,ac,kp,jp,pc,bo,st */
+const PRESET_RAW={
+ CF :[80,76,76,76,68,64,80,76,64,68, 44,43,48,45, 40,40,40,40,40, 80,78,80,76,78,72,74],
+ ST :[79,78,78,77,72,68,78,70,64,70, 50,48,54,52, 40,40,40,40,40, 80,79,78,70,74,75,76],
+ RWG:[77,79,82,74,71,67,75,62,62,71, 50,48,54,52, 40,40,40,40,40, 84,84,75,63,65,79,76],
+ LWG:[77,79,82,74,71,67,75,62,62,71, 50,48,54,52, 40,40,40,40,40, 84,84,75,63,65,79,76],
+ OMF:[79,78,78,77,78,75,77,64,64,70, 68,66,70,72, 40,40,40,40,40, 79,78,79,66,74,76,79],
+ RMF:[75,78,79,75,77,74,72,62,64,72, 64,63,67,68, 40,40,40,40,40, 81,80,77,64,68,77,80],
+ LMF:[75,78,79,75,77,74,72,62,64,72, 64,63,67,68, 40,40,40,40,40, 81,80,77,64,68,77,80],
+ CMF:[73,78,75,77,80,77,70,66,66,71, 71,70,72,74, 40,40,40,40,40, 75,74,79,68,74,74,81],
+ DMF:[66,75,70,75,78,75,62,72,62,66, 78,77,78,79, 40,40,40,40,40, 73,71,76,74,78,70,80],
+ RSB:[66,74,73,71,75,73,58,66,58,67, 76,75,76,77, 40,40,40,40,40, 82,80,73,70,73,72,82],
+ LSB:[66,74,73,71,75,73,58,66,58,67, 76,75,76,77, 40,40,40,40,40, 82,80,73,70,73,72,82],
+ CB :[50,67,61,65,70,70,50,80,52,55, 79,77,78,79, 40,40,40,40,40, 75,70,71,79,80,63,78],
+ GK :[45,55,45,50,66,70,42,48,48,46, 60,45,52,62, 80,80,78,79,79, 62,64,78,78,74,68,70]
+};
+const PRESET=Object.fromEntries(Object.entries(PRESET_RAW).map(([p,a])=>
+  [p,Object.fromEntries(SKEY.map((k,i)=>[k,a[i]]))]));
+/* そのポジションの「主要能力」＝初期値が高い上位n項目（表示用） */
+function keyStats(pos,n=6){
+  const b=PRESET[pos]||{};
+  return SKEY.filter(k=>pos==='GK'||!ISGK[k]).slice().sort((x,y)=>b[y]-b[x]).slice(0,n);
 }
-const PRESET=Object.fromEntries(POS.map(p=>[p,makePreset(p)]));
+/* そのポジションの「ベース水準」＝中央値 */
+function baseLevel(pos){
+  const b=PRESET[pos]||{};
+  const v=SKEY.filter(k=>pos==='GK'||!ISGK[k]).map(k=>b[k]).sort((x,y)=>x-y);
+  return v[Math.floor(v.length/2)];
+}
 
 /* --- 実データ：BT ジュード・ベリンガム（2026/8/3搭載・OMF・ビッグタイム）--- */
 const BELLINGHAM={
@@ -736,12 +795,12 @@ const dayDiff=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z
 
 /* =====================================================================
    育成モデル
-   最終値 ＝ 素値(Lv.1) ＋ タレントポイント ＋ 選手ブースター ＋ 監督ブースター ＋ 監督適性補正
+   最終値 ＝ 初期能力値(Lv.1) ＋ タレントポイント ＋ 選手ブースター ＋ 監督ブースター ＋ 監督適性補正
    ===================================================================== */
 function blank(pos='OMF'){
   return {id:null,name:'',pos,style:'（なし）',height:'',weight:'',foot:'右足',
     wff:'普通',wfa:'普通',cond:'小さい',inj:'普通',maxLv:32,
-    boosters:[{n:'',v:3},{n:'',v:3}],
+    boosters:[{n:'',v:3},{n:'',v:1}],
     mgr:{name:'',style:'ポゼッション',apt:0,b:[{k:'',v:MGR_BOOST_VAL},{k:'',v:MGR_BOOST_VAL}]},
     apt:{[pos]:2},skillsBase:[],skillsAdd:[],
     base:structuredClone(PRESET[pos]),
@@ -777,14 +836,21 @@ function finalStats(p,opt={}){
   const pb=opt.noBoost?null:sumBoost(p.boosters);
   const mb=opt.noBoost||opt.noMgr?null:sumBuff(mgrOf(p).b);
   const apt=opt.noMgr?0:(mgrOf(p).apt||0);
-  const boost={},mgrb={},aptb={},o={};
+  const boost={},mgrb={},aptb={},o={},cap={};
   SKEY.forEach(k=>{
     boost[k]=pb?pb[k]:0; mgrb[k]=mb?mb[k]:0;
-    const v=clamp((p.base[k]||0)+t[k]+boost[k]+mgrb[k],1,120);
+    /* 通常の上限は 99。ブースターの上昇分だけ 99 を突破できる
+       例）ゴールセービング(+3) を積んだGKセンスは 102 まで伸びる */
+    const bsum=boost[k]+mgrb[k];
+    cap[k]=STAT_CAP+bsum;
+    /* 初期能力値＋タレントポイント は 99 で頭打ち */
+    const core=Math.min((p.base[k]||0)+t[k],STAT_CAP);
+    const v=clamp(core+bsum,1,cap[k]);
     aptb[k]=aptBonus(v,apt);
-    o[k]=clamp(v+aptb[k],1,120);
+    o[k]=clamp(v+aptb[k],1,cap[k]);
+    aptb[k]=o[k]-v; /* 上限で切られた分は補正としてカウントしない */
   });
-  return {final:o,tp:t,boost,mgrb,aptb};
+  return {final:o,tp:t,boost,mgrb,aptb,cap};
 }
 function overall(stats,pos){
   const w=W[pos]||W.CMF;let s=0,d=0;
@@ -804,7 +870,6 @@ function initSelects(){
   fillSel($('#f_pos'),POS,CUR.pos); fillSel($('#f_style'),STYLES,CUR.style);
   fillSel($('#f_wff'),LEVEL4,CUR.wff); fillSel($('#f_wfa'),LEVEL4,CUR.wfa);
   fillSel($('#f_cond'),COND4,CUR.cond); fillSel($('#f_inj'),INJ3,CUR.inj);
-  fillSel($('#g_style'),TEAMSTYLES,mgrOf(CUR).style);
   $('#g_apt').innerHTML=MGR_APT_VALUES.map(v=>`<option value="${v}">${v?v:'適性なし（補正なし）'}</option>`).join('');
   fillSel($('#m_ms'),TEAMSTYLES); fillSel($('#m_os'),TEAMSTYLES);
   fillSel($('#m_mf'),FORMS); fillSel($('#m_of'),FORMS); fillSel($('#m_div'),DIVS,'未設定');
@@ -843,13 +908,15 @@ function boosterRow(label,slot,path,i,vals){
 function bindBoosterSelects(root){
   $$('[data-bp]',root).forEach(el=>el.onchange=()=>{
     const arr=CUR.boosters, i=+el.dataset.bi;
-    const s=arr[i]||(arr[i]={n:'',v:3});
+    const s=arr[i]||(arr[i]={n:'',v:i?1:3});
     if(el.dataset.bf==='n')s.n=el.value; else s.v=+el.value;
     renderBoosters();renderStats();
   });
 }
 function renderBoosters(){
-  $('#boosterBox').innerHTML=[0,1].map(i=>boosterRow('ブースター '+(i+1),CUR.boosters[i]||{n:'',v:3},'p',i)).join('');
+  $('#boosterBox').innerHTML=[0,1].map(i=>
+    boosterRow('ブースター '+(i+1),CUR.boosters[i]||{n:'',v:i?1:3},'p',i,BOOST_VALS[i])).join('')+
+    `<div class="muted">ブースター1は<b>ビッグタイム等の +4</b> まで選べます。効果値ぶんだけ能力値の上限 ${STAT_CAP} を超えられます。</div>`;
   bindBoosterSelects($('#boosterBox'));
 }
 /* 監督ブースター＝能力値そのものを +1 するバフ（26項目から選択・最大2つ） */
@@ -868,7 +935,6 @@ function mgrBuffRow(i,slot){
 function renderMgr(){
   const m=mgrOf(CUR);
   $('#g_name').value=m.name||'';
-  fillSel($('#g_style'),TEAMSTYLES,m.style);
   $('#g_apt').value=String(m.apt||0);
   $('#aptTable').innerHTML=m.apt
     ? (()=>{const r=MGR_APT_MAP[m.apt];
@@ -882,15 +948,19 @@ function renderMgr(){
     renderMgr();renderStats();
   });
 }
-function skillChips(sel,attr,onlyNormal,limit){
+/* sel=この枠の選択リスト / other=もう一方の枠（重複選択を禁止する） */
+function skillChips(sel,other,attr,onlyNormal,limit){
   const full=sel.length>=limit;
   return Object.entries(SKILLS).map(([c,a])=>{
-    const arr=onlyNormal?a.filter(s=>!SPECIAL.has(s)):a;
+    const arr=onlyNormal?a.filter(s=>!SPECIAL.has(s)&&!AUTO_SKILL.has(s)):a;
     if(!arr.length)return '';
     return `<div class="muted" style="margin:6px 0 3px">${esc(c)}</div>`+
       arr.map(s=>{
-        const on=sel.includes(s);
-        return `<span class="chip${SPECIAL.has(s)?' sp':''}${on?' on':''}${!on&&full?' dis':''}" ${attr}="${esc(s)}">${on?'✓ ':''}${esc(s)}</span>`;
+        const on=sel.includes(s), dup=other.includes(s);
+        const dis=!on&&(dup||full);
+        return `<span class="chip${SPECIAL.has(s)?' sp':''}${on?' on':''}${dis?' dis':''}"`+
+          ` ${attr}="${esc(s)}"${dup?' data-dup="1" title="もう一方の枠で選択済み"':''}>`+
+          `${on?'✓ ':''}${dup?'／':''}${esc(s)}</span>`;
       }).join('');
   }).join('');
 }
@@ -899,16 +969,16 @@ function renderSkillPick(){
   const cb=$('#cntBase'), ca=$('#cntAdd');
   cb.textContent=`${b.length} / ${MAX_BASE_SKILL}`; cb.className='cnt'+(b.length>=MAX_BASE_SKILL?' full':'');
   ca.textContent=`${a.length} / ${MAX_ADD_SKILL}`; ca.className='cnt'+(a.length>=MAX_ADD_SKILL?' full':'');
-  $('#skillBase').innerHTML=skillChips(b,'data-sb',false,MAX_BASE_SKILL);
-  $('#skillAdd').innerHTML=skillChips(a,'data-sa',true,MAX_ADD_SKILL);
-  $$('#skillBase .chip').forEach(c=>c.onclick=()=>{
-    if(tog(CUR.skillsBase,c.dataset.sb,MAX_BASE_SKILL))renderSkillPick(),renderStats();
-    else toast(`初期搭載スキルは最大${MAX_BASE_SKILL}個までです`);
+  $('#skillBase').innerHTML=skillChips(b,a,'data-sb',false,MAX_BASE_SKILL);
+  $('#skillAdd').innerHTML=skillChips(a,b,'data-sa',true,MAX_ADD_SKILL);
+  const bind=(sel,attr,mine,other,limit,label)=>$$(sel).forEach(c=>c.onclick=()=>{
+    const s=c.dataset[attr];
+    if(!mine.includes(s)&&other.includes(s)){toast(`「${s}」はもう一方の枠で選択済みです`);return;}
+    if(tog(mine,s,limit)){renderSkillPick();renderStats();}
+    else toast(`${label}は最大${limit}個までです`);
   });
-  $$('#skillAdd .chip').forEach(c=>c.onclick=()=>{
-    if(tog(CUR.skillsAdd,c.dataset.sa,MAX_ADD_SKILL))renderSkillPick(),renderStats();
-    else toast(`追加スキルは最大${MAX_ADD_SKILL}個までです`);
-  });
+  bind('#skillBase .chip','sb',CUR.skillsBase,CUR.skillsAdd,MAX_BASE_SKILL,'初期搭載スキル');
+  bind('#skillAdd .chip','sa',CUR.skillsAdd,CUR.skillsBase,MAX_ADD_SKILL,'追加スキル');
 }
 function tog(arr,v,limit){
   const i=arr.indexOf(v);
@@ -918,11 +988,13 @@ function tog(arr,v,limit){
 }
 function renderBaseEdit(){
   const p=PRESET[CUR.pos]||{};
-  const key=SKEY.filter(k=>p[k]===BASE_KEY).map(k=>SNAME[k]);
-  const gkl=SKEY.filter(k=>ISGK[k]).map(k=>SNAME[k]);
-  $('#presetNote').innerHTML=CUR.pos==='GK'
-    ? `<b>GK</b> の初期値：<b style="color:var(--v75)">GK5項目 ${BASE_GK}</b>（${esc(gkl.join('／'))}）／ フィールド能力は <b>${BASE_STD}</b>〜<b>${BASE_LOW}</b>。`
-    : `<b>${esc(CUR.pos)}</b> の初期値：ベース <b>${BASE_STD}</b> に統一し、主要能力を <b style="color:var(--v80)">${BASE_KEY}</b>（${esc(key.join('／'))||'—'}）、不要な能力を <b>${BASE_LOW}</b>、GK能力を <b>${BASE_GK_FIELD}</b> に設定。`;
+  const key=keyStats(CUR.pos).map(k=>`${SNAME[k]} ${p[k]}`);
+  $('#presetNote').innerHTML=
+    `<b>${esc(CUR.pos)}</b> の初期能力値：ベース水準 <b style="color:var(--v75)">${baseLevel(CUR.pos)}</b>`+
+    `／主要能力 <b style="color:var(--v80)">${esc(key.join('・'))}</b>`+
+    (CUR.pos==='GK'?'' : `／GK能力は一律 <b>${GK_FIELD}</b>`)+
+    `<br><span style="color:var(--tx3)">直近1年のガチャ搭載カード（BT C.ロナウド／BT J.ベリンガム／EP R.ファーディナンド）の Lv.1 実データを基準にしています。</span>`;
+  $('#baseHdPos').textContent=`（${CUR.pos}${CUR.name?' / '+CUR.name:''}）`;
   $('#baseEdit').innerHTML=`<div class="scols">`+COLS.map(([c,n])=>
     `<div class="scol"><h4>${esc(n)}</h4>`+STATS.filter(s=>s[2]===c).map(([k,nm])=>
       `<div class="bs"><span class="n" title="${esc(nm)}">${esc(nm)}</span>
@@ -935,7 +1007,7 @@ function renderBaseEdit(){
     const r=$(`[data-bs="${k}"]`), n=$(`[data-bv="${k}"]`);
     if(r&&from!=='range')r.value=v;
     if(n){n.style.color=vColorHex(v); if(from!=='num')n.value=v;}
-    renderStats();
+    renderStats(); updateBaseHead();
   };
   $$('#baseEdit input[type=range]').forEach(i=>i.addEventListener('input',()=>setBase(i.dataset.bs,+i.value,'range')));
   $$('#baseEdit input.v').forEach(i=>{
@@ -943,6 +1015,13 @@ function renderBaseEdit(){
     i.addEventListener('blur',()=>setBase(i.dataset.bv,+i.value||BASE_MIN,'blur'));
     i.addEventListener('keydown',e=>{if(e.key==='Enter')i.blur();});
   });
+  updateBaseHead();
+}
+/* モーダル内でも育成後の総合値がわかるようにヘッダーへ表示 */
+function updateBaseHead(){
+  const {final}=finalStats();
+  $('#baseHdOvr').innerHTML=`初期能力値の合計 <b>${SKEY.reduce((s,k)=>s+CUR.base[k],0)}</b>`+
+    `　／　育成後の推定総合値 <b style="color:${vColor(overall(final,CUR.pos))}">${overall(final,CUR.pos)}</b>`;
 }
 
 /* =====================================================================
@@ -986,7 +1065,7 @@ function renderStats(){
     <div><span>調子の波 / ケガ耐性</span><b>${esc(CUR.cond)} / ${esc(CUR.inj)}</b></div>
     <div><span>Lv / 使用TP</span><b>${CUR.maxLv} / ${tpUsed()}</b></div>
     <div><span>適性</span><b>${apt.map(([p,v])=>v===2?p:`(${p})`).join(' ')||'—'}</b></div>
-    <div><span>監督適性</span><b>${m.apt?m.apt+'（'+esc(m.style)+'）':'なし'}</b></div>`;
+    <div><span>監督適性</span><b>${m.apt?'適性 '+m.apt:'なし'}</b></div>`;
   const bs=(CUR.boosters||[]).filter(s=>s.n).map(s=>`<span class="pill y">${esc(s.n)} +${s.v}</span>`).join(' ');
   const ms=mgrBuffList(m).map(s=>`<span class="pill b">${esc(SNAME[s.k])} +${s.v}</span>`).join(' ');
   $('#skillShow').innerHTML=
@@ -1094,7 +1173,7 @@ function syncFromForm(){
   CUR.height=$('#f_h').value; CUR.weight=$('#f_w').value; CUR.foot=$('#f_foot').value;
   CUR.wff=$('#f_wff').value; CUR.wfa=$('#f_wfa').value; CUR.cond=$('#f_cond').value; CUR.inj=$('#f_inj').value;
   CUR.maxLv=clamp(+$('#f_lv').value||1,1,60);
-  const m=mgrOf(CUR); m.name=$('#g_name').value; m.style=$('#g_style').value; m.apt=+$('#g_apt').value||0;
+  const m=mgrOf(CUR); m.name=$('#g_name').value; m.apt=+$('#g_apt').value||0;
   CUR.mgr=m;
   let guard=0;
   while(tpUsed()>tpMax()&&guard++<500){
@@ -1202,7 +1281,7 @@ function shareText(){
 Lv.${CUR.maxLv}／TP ${tpUsed()}pt
 振り分け：${tps||'なし'}
 ブースター：${bo}
-監督：${m.apt?`適性${m.apt}（${m.style}）`:'なし'}${mgrBuffText(m)?' / バフ '+mgrBuffText(m):''}
+監督：${m.apt?`適性${m.apt}`:'なし'}${mgrBuffText(m)?' / バフ '+mgrBuffText(m):''}
 適性：${apt||'—'}／逆足 頻度${CUR.wff}・精度${CUR.wfa}
 スキル：${[...CUR.skillsBase,...CUR.skillsAdd].join('、')||'—'}
 #育成シミュレート #PITCHLAB`;
@@ -1219,100 +1298,133 @@ async function copy(t){
 function sharePng(){
   syncFromForm();
   const {final}=finalStats();
-  const ov=overall(final,CUR.pos);
-  const W0=760,H0=1180,c=document.createElement('canvas');c.width=W0;c.height=H0;
+  const m=mgrOf(CUR);
+  const W0=760, H_MIN=1180, H_MAX=1440;
+  const c=document.createElement('canvas');c.width=W0;c.height=H_MIN;
   const x=c.getContext('2d'); if(!x)return;
+  /* 能力ブロックの位置は固定。育成内容の高さは中身で決まる */
+  const BOXT=345, BOXH=490;
   const F=(w,s)=>`${w} ${s}px -apple-system,"Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",sans-serif`;
   const T=(t,l,tp2,font,color,align)=>{x.font=font;x.fillStyle=color;x.textAlign=align||'left';x.fillText(String(t),l,tp2);x.textAlign='left';};
+  const L=34, R=726;
 
+  /* ===== 育成内容（1項目＝1チップ／語の途中で改行しない） ===== */
+  const items=[
+    ['タレント配分','#6fe3dc',TCAT.filter(t=>CUR.tp[t[0]]>0).map(t=>[`${t[1]} +${CUR.tp[t[0]]}`,'c'])],
+    ['ブースター / 監督','#ffd35c',(()=>{
+      const bo=(CUR.boosters||[]).filter(b=>b.n).map(b=>[`${b.n} +${b.v}`,'y']);
+      const mg=[...(m.apt?[[`監督 適性 ${m.apt}`,'b']]:[]),
+                ...mgrBuffList(m).map(s=>[`監督 ${SNAME[s.k]} +${s.v}`,'b'])];
+      /* null は強制改行。ブースターを1行目、監督を2行目に分ける */
+      return bo.length&&mg.length?[...bo,null,...mg]:[...bo,...mg];
+    })()],
+    ['初期搭載スキル','#ff8ab4',CUR.skillsBase.map(s=>[s,SPECIAL.has(s)?'p':''])],
+    ['追加スキル','#7dea9f',CUR.skillsAdd.map(s=>[s,'g'])]
+  ];
+  const TONE={
+    c:['#6fe3dc','rgba(111,227,220,.10)','rgba(111,227,220,.45)'],
+    y:['#ffd35c','rgba(255,211,92,.10)','rgba(255,211,92,.45)'],
+    b:['#7cc4ff','rgba(74,168,255,.10)','rgba(74,168,255,.45)'],
+    p:['#ff8ab4','rgba(255,46,120,.10)','rgba(255,46,120,.5)'],
+    g:['#7dea9f','rgba(61,220,132,.10)','rgba(61,220,132,.45)'],
+    '':['#eef2f8','#151b26','#2a3140']
+  };
+  let CS,CH,GAP;
+  /* dry=true なら描画せず高さだけ測る（下の余白が出ないよう位置を決めるため） */
+  const runSections=(startY,dry)=>{
+    let cy=startY;
+    for(const [label,color,list] of items){
+      if(!dry)T(label,L,cy+11,F(700,14),color);
+      cy+=18;
+      if(!list.length){ if(!dry)T('—',L,cy+CH*0.68,F(600,CS),'#4a5468'); cy+=CH+GAP; continue; }
+      let px=L;
+      for(const it of list){
+        if(it===null){ if(px>L){ px=L; cy+=CH+6; } continue; }   /* 強制改行 */
+        const [t,tone]=it;
+        x.font=F(800,CS);
+        const w=Math.ceil(x.measureText(t).width)+22;
+        if(px>L&&px+w>R){ px=L; cy+=CH+6; }
+        if(!dry){
+          const[fg,bg,br]=TONE[tone]||TONE[''];
+          x.fillStyle=bg;roundRect(x,px,cy,w,CH,9);x.fill();
+          x.strokeStyle=br;x.lineWidth=1;roundRect(x,px,cy,w,CH,9);x.stroke();
+          /* チップの中央にテキストを置く */
+          T(t,px+11,cy+CH/2+CS*0.36,F(800,CS),fg);
+        }
+        px+=w+7;
+      }
+      cy+=CH+GAP;
+    }
+    return cy-GAP-startY;
+  };
+  const topMin=BOXT+BOXH+38;
+  /* 読みやすい最大サイズで必要な高さを測り、収まらなければカード自体を縦に伸ばす。
+     それでも足りないときだけ段階的に小さくする。 */
+  let need=0;
+  for(const pr of [[14,27,18],[13,25,15],[12,23,12],[11,21,10]]){
+    [CS,CH,GAP]=pr; need=runSections(0,true);
+    if(topMin+need+46<=H_MAX)break;
+  }
+  /* 収まりに応じてカードの高さを決める（読みやすさ優先で縦に伸ばす） */
+  const H0=Math.min(H_MAX,Math.max(H_MIN,topMin+need+46));
+  if(c.height!==H0)c.height=H0;   /* サイズ変更でクリアされるので、描画はこの後 */
+
+  /* ===== 背景 ===== */
   x.fillStyle='#05070c';x.fillRect(0,0,W0,H0);
-  const g=x.createLinearGradient(0,0,W0,275);g.addColorStop(0,'#16203a');g.addColorStop(1,'#05070c');
-  x.fillStyle=g;x.fillRect(0,0,W0,275);
+  const g=x.createLinearGradient(0,0,W0,300);g.addColorStop(0,'#16203a');g.addColorStop(1,'#05070c');
+  x.fillStyle=g;x.fillRect(0,0,W0,300);
   x.strokeStyle='#ff2e78';x.lineWidth=2;x.strokeRect(10,10,W0-20,H0-20);
 
-  /* ヘッダー（メタ情報は約2倍のサイズ） */
-  T((CUR.name||'無名').slice(0,14),34,70,F(800,40),'#ffd400');
-  T(CUR.style==='（なし）'?'—':CUR.style,34,100,F(700,19),'#ffd400');
+  /* ===== ヘッダー左：選手情報 ===== */
+  T((CUR.name||'無名').slice(0,13),L,76,F(800,40),'#ffd400');
+  T(`【${CUR.pos}】`+(CUR.style==='（なし）'?'':CUR.style),L,106,F(700,20),'#ffd400');
   const m1=[CUR.foot,CUR.height?CUR.height+'cm':'',CUR.weight?CUR.weight+'kg':''].filter(Boolean).join(' / ');
-  T(m1,34,146,F(700,26),'#c3ccdb');
-  T(`Lv.${CUR.maxLv} / TP ${tpUsed()}/${tpMax()}`,34,184,F(700,26),'#c3ccdb');
-  T(`逆足 頻度:${CUR.wff}・精度:${CUR.wfa}`,34,222,F(700,26),'#7ddc7d');
-  T(`調子:${CUR.cond} / ケガ耐性:${CUR.inj}`,34,258,F(600,24),'#96a1b5');
-  x.fillStyle='#4ee08a';x.beginPath();x.arc(424,92,8,0,7);x.fill();
-  T(ov,442,112,F(800,66),'#ffffff');
-  T(CUR.pos,442,150,F(800,28),'#ffffff');
-  T('推定総合値',442,174,F(600,14),'#96a1b5');
+  T(m1,L,150,F(700,26),'#c3ccdb');
+  T(`Lv.${CUR.maxLv}`,L,186,F(700,26),'#c3ccdb');
+  T(`逆足 頻度:${CUR.wff}・精度:${CUR.wfa}`,L,222,F(700,26),'#7ddc7d');
+  T(`調子:${CUR.cond} / ケガ耐性:${CUR.inj}`,L,254,F(600,24),'#96a1b5');
 
-  /* レーダー */
-  const isGK=CUR.pos==='GK';
-  const axes=isGK?[['GK',(final.gks+final.gkc)/2],['CLR',(final.gkl+final.gkd)/2],['COL',final.gkp],['PHY',(final.jp+final.pc)/2],['SPD',(final.sp+final.ac)/2],['PAS',(final.gp+final.fp)/2]]
-   :[['SHT',(final.fin+final.pk+final.cv)/3],['PAS',(final.gp+final.fp)/2],['POW',(final.kp+final.pc+final.jp)/3],
-     ['DEF',(final.dfs+final.bw+final.dfa)/3],['SPD',(final.sp+final.ac)/2],['DRI',(final.bc+final.dr+final.bk)/3]];
-  const rcx=640,rcy=124,R=64,N=axes.length;
-  const pt=(i,r)=>[rcx+Math.cos(-Math.PI/2+i*2*Math.PI/N)*r,rcy+Math.sin(-Math.PI/2+i*2*Math.PI/N)*r];
-  x.strokeStyle='#2a3140';x.lineWidth=1;
-  [.33,.66,1].forEach(s=>{x.beginPath();axes.forEach((_,i)=>{const[px,py]=pt(i,R*s);i?x.lineTo(px,py):x.moveTo(px,py)});x.closePath();x.stroke();});
-  axes.forEach((_,i)=>{const[px,py]=pt(i,R);x.beginPath();x.moveTo(rcx,rcy);x.lineTo(px,py);x.stroke();});
-  x.beginPath();axes.forEach((a,i)=>{const[px,py]=pt(i,R*clamp(a[1],0,105)/105);i?x.lineTo(px,py):x.moveTo(px,py)});x.closePath();
-  x.fillStyle='rgba(255,46,120,.3)';x.fill();x.strokeStyle='#ff2e78';x.lineWidth=2;x.stroke();
-  axes.forEach((a,i)=>{
-    const[px,py]=pt(i,R+15); T(a[0],px,py+4,F(800,11),'#96a1b5','center');
-    const[qx,qy]=pt(i,R+29); T(Math.round(a[1]),qx,qy+4,F(800,11),vColorHex(a[1]),'center');
+  /* ===== ヘッダー右：ポジション適性 ===== */
+  const cw=66,ch=33,pw=cw*PITCH_COLS+8,ph=ch*PITCH_ROWS+8;
+  const px0=R-pw, py0=46;
+  T('ポジション適性',px0,py0-10,F(800,14),'#ff2e78');
+  x.fillStyle='#0e2417';roundRect(x,px0,py0,pw,ph,11);x.fill();
+  x.strokeStyle='#23503a';x.lineWidth=1;roundRect(x,px0,py0,pw,ph,11);x.stroke();
+  PITCH.forEach(([p,col,row,span])=>{
+    const l=px0+4+(col-1)*cw, t=py0+4+(row-1)*ch, h=span*ch, a=CUR.apt[p]||0;
+    x.fillStyle=a===2?'#3ddc84':a===1?'rgba(61,220,132,.32)':'rgba(0,0,0,.35)';
+    roundRect(x,l+2,t+2,cw-4,h-4,7);x.fill();
+    T(p,l+cw/2,t+h/2+6,F(800,16),a===2?'#052312':a===1?'#dbffe9':'#7f8fa0','center');
+    if(p===CUR.pos)T('★',l+cw-11,t+16,F(700,13),'#ffd400','center');
   });
 
-  /* 能力（3列・増加量は表示しない） */
-  let y=300;
-  T('能力',34,y,F(800,18),'#ff2e78');
-  y+=12;
-  const BOXH=392;
-  x.fillStyle='#0d1119';roundRect(x,26,y,W0-52,BOXH,14);x.fill();
-  x.strokeStyle='#1c222e';x.lineWidth=1;roundRect(x,26,y,W0-52,BOXH,14);x.stroke();
-  const colX=[48,292,522],colW=[206,196,196];
+  /* ===== 能力（ゲーム画面と同じ3列・文字を一回り大きく） ===== */
+  const SZ_H=17, SZ_N=15, SZ_V=18, SROW=40;   /* 見出し／能力名／数値／行高 */
+  T('能力',L,330,F(800,19),'#ff2e78');
+  x.fillStyle='#0d1119';roundRect(x,16,BOXT,W0-32,BOXH,14);x.fill();
+  x.strokeStyle='#1c222e';x.lineWidth=1;roundRect(x,16,BOXT,W0-32,BOXH,14);x.stroke();
+  const CW=200, colX=[32,265,498];   /* CW を 230→200 にして数値を左へ30px */
   COLS.forEach(([cid,cn],ci)=>{
-    let yy=y+28;
-    T(cn,colX[ci],yy,F(700,13),'#66718a');
-    x.strokeStyle='#232b3a';x.beginPath();x.moveTo(colX[ci],yy+9);x.lineTo(colX[ci]+colW[ci],yy+9);x.stroke();
-    yy+=32;
+    let yy=BOXT+40;
+    T(cn,colX[ci],yy,F(800,SZ_H),'#93a1ba');
+    x.strokeStyle='#2c3648';x.lineWidth=1;
+    x.beginPath();x.moveTo(colX[ci],yy+13);x.lineTo(colX[ci]+CW,yy+13);x.stroke();
+    yy+=48;
     STATS.filter(s=>s[2]===cid).forEach(([k,nm])=>{
-      T(nm,colX[ci],yy,F(500,15),'#c3ccdb');
-      T(final[k],colX[ci]+colW[ci],yy+1,F(800,20),vColorHex(final[k]),'right');
-      x.strokeStyle='#171d28';x.lineWidth=1;x.beginPath();x.moveTo(colX[ci],yy+10);x.lineTo(colX[ci]+colW[ci],yy+10);x.stroke();
-      yy+=32;
+      T(nm,colX[ci],yy,F(500,SZ_N),'#c9d3e2');
+      T(final[k],colX[ci]+CW,yy,F(800,SZ_V),vColorHex(final[k]),'right');
+      x.strokeStyle='#171d28';x.lineWidth=1;
+      x.beginPath();x.moveTo(colX[ci],yy+14);x.lineTo(colX[ci]+CW,yy+14);x.stroke();
+      yy+=SROW;
     });
   });
-  y+=BOXH+24;
 
-  /* 適性ポジション（ミニピッチ・約2倍スケールで下まで使い切る） */
-  const px0=34,py0=y,cw=92,ch=55;
-  T('ポジション適性',px0,py0,F(800,17),'#ff2e78');
-  const gy=py0+16, pw=cw*PITCH_COLS+8, ph=ch*PITCH_ROWS+8;
-  x.fillStyle='#0e2417';roundRect(x,px0,gy,pw,ph,12);x.fill();
-  x.strokeStyle='#23503a';roundRect(x,px0,gy,pw,ph,12);x.stroke();
-  PITCH.forEach(([p,col,row,span])=>{
-    const l=px0+4+(col-1)*cw, t=gy+4+(row-1)*ch, h=span*ch, a=CUR.apt[p]||0;
-    x.fillStyle=a===2?'#3ddc84':a===1?'rgba(61,220,132,.32)':'rgba(0,0,0,.35)';
-    roundRect(x,l+3,t+3,cw-6,h-6,9);x.fill();
-    T(p,l+cw/2,t+h/2+8,F(800,22),a===2?'#052312':a===1?'#dbffe9':'#7f8fa0','center');
-    if(p===CUR.pos)T('★',l+cw-16,t+24,F(700,18),'#ffd400','center');
-  });
+  const bottom=H0-40;
+  const top=Math.max(topMin,bottom-need);
+  T('育成内容',L,top-16,F(800,17),'#ff2e78');
+  runSections(top,false);
 
-  /* 育成内容（ピッチに合わせて文字も拡大） */
-  const m=mgrOf(CUR);
-  const bx=px0+pw+26; let by=py0;
-  T('育成内容',bx,by,F(800,17),'#ff2e78'); by+=34;
-  const line=(label,val,color)=>{
-    T(label,bx,by,F(700,15),'#66718a');
-    x.font=F(600,17);x.fillStyle=color||'#eef2f8';
-    by=wrap(x,val||'—',bx+112,by,W0-bx-140,24)+32;
-  };
-  line('プレースタイル',CUR.style==='（なし）'?'—':CUR.style,'#ffd400');
-  line('タレント',TCAT.filter(t=>CUR.tp[t[0]]>0).map(t=>`${t[1]}+${CUR.tp[t[0]]}`).join('  ')||'なし','#ffd35c');
-  line('ブースター',(CUR.boosters||[]).filter(b=>b.n).map(b=>`${b.n}+${b.v}`).join('  ')||'なし','#ffd35c');
-  line('監督',(m.apt?`適性${m.apt}（${m.style}）`:'適性なし')+(mgrBuffText(m)?'　バフ '+mgrBuffText(m):''),'#4aa8ff');
-  line('初期スキル',CUR.skillsBase.join('、')||'—','#ff8ab4');
-  line('追加スキル',CUR.skillsAdd.join('、')||'—','#3ddc84');
-
-  T('PITCH LAB — 非公式ファンメイド育成シミュレーター ／ 総合値は推定値です',34,H0-26,F(500,12),'#4a5468');
+  T('PITCH LAB — 非公式ファンメイド育成シミュレーター',L,H0-22,F(500,12),'#4a5468');
 
   const fname=(CUR.name||'player').replace(/[\\/:*?"<>|]/g,'_')+'.png';
   const dl=href=>{const a2=document.createElement('a');a2.download=fname;a2.href=href;a2.click();toast('PNGを書き出しました');};
@@ -1342,7 +1454,9 @@ function wrap(x,text,l,t,maxw,lh){
    戦績管理
    ===================================================================== */
 function newPhase(name,start,end){
-  const p={id:uid(),name:name||('第'+(DB.phases.length+1)+'フェーズ'),start:start||today(),end:end||addDays(start||today(),13)};
+  const last=DB.phases[DB.phases.length-1];
+  const p={id:uid(),name:name||('第'+(DB.phases.length+1)+'フェーズ'),start:start||today(),end:end||addDays(start||today(),13),
+    div:last?last.div:'未設定', rate:last?String(endRate(last)||''):''};
   DB.phases.push(p);DB.curPhase=p.id;save();return p;
 }
 function ensurePhase(){
@@ -1354,21 +1468,36 @@ function ensurePhase(){
     if(!last.end||last.end>=today())break;
     const len=Math.max(1,dayDiff(last.start,last.end)+1);
     const s=addDays(last.end,1), e=addDays(s,len-1);
-    DB.phases.push({id:uid(),name:'第'+(DB.phases.length+1)+'フェーズ',start:s,end:e});
+    DB.phases.push({id:uid(),name:'第'+(DB.phases.length+1)+'フェーズ',start:s,end:e,
+      div:last.div||'未設定', rate:String(endRate(last)||'')});
     DB.curPhase=DB.phases[DB.phases.length-1].id;
     save();
     if(guard===1)setTimeout(()=>toast('フェーズ期間が終了したので新しいフェーズを作成しました'),400);
   }
 }
 function curPhase(){return DB.phases.find(p=>p.id===DB.curPhase);}
+/* フェーズ終了時点のレート＝開始レート＋そのフェーズの増減合計 */
+function endRate(ph){
+  if(!ph||ph.rate===''||ph.rate==null)return null;
+  const base=Number(ph.rate); if(!Number.isFinite(base))return null;
+  return base+DB.matches.filter(m=>m.phaseId===ph.id).reduce((s,m)=>s+(+m.rt||0),0);
+}
 function renderPhases(){
   ensurePhase();
   $('#phSel').innerHTML=DB.phases.map(p=>`<option value="${p.id}"${p.id===DB.curPhase?' selected':''}>${esc(p.name)}（${esc(p.start||'')}〜${esc(p.end||'')}）</option>`).join('');
   const ph=curPhase();
   $('#ph_n').value=ph.name; $('#ph_s').value=ph.start||''; $('#ph_e').value=ph.end||'';
+  fillSel($('#ph_div'),DIVS,ph.div||'未設定');
+  $('#ph_rate').value=ph.rate??'';
   const rest=ph.end?dayDiff(today(),ph.end):null;
+  const er=endRate(ph), base=Number(ph.rate);
+  const diff=er!==null?er-base:null;
   $('#phMeta').innerHTML=`記録 ${curMatches().length}件`+
-    (rest===null?'':rest>=0?`／残り <b>${rest}日</b>（${esc(ph.end)}まで）`:`／<span style="color:var(--bad)">期間終了</span>`);
+    (rest===null?'':rest>=0?`／残り <b>${rest}日</b>（${esc(ph.end)}まで）`:`／<span style="color:var(--bad)">期間終了</span>`)+
+    `<br>開始 <b>${esc(ph.div||'未設定')}</b>`+
+    (er===null?'／開始レート未設定'
+      :`　レート <b>${base}</b> → <b style="color:${diff>=0?'var(--ac)':'var(--bad)'}">${er}</b>`+
+       `（${diff>0?'+':''}${diff}）`);
 }
 const curMatches=()=>DB.matches.filter(m=>m.phaseId===DB.curPhase);
 const res=m=>m.gf>m.ga?'W':m.gf<m.ga?'L':'D';
@@ -1402,7 +1531,10 @@ function renderRec(){
     <div class="kpi"><b>${w}-${d}-${l}</b><span>W-D-L</span></div>
     <div class="kpi"><b>${(gf/n).toFixed(2)}</b><span>平均得点</span></div>
     <div class="kpi"><b>${(ga/n).toFixed(2)}</b><span>平均失点</span></div>
-    <div class="kpi"><b style="color:${rt>=0?'var(--ac)':'var(--bad)'}">${rt>0?'+':''}${rt}</b><span>レート増減</span></div>`;
+    <div class="kpi"><b style="color:${rt>=0?'var(--ac)':'var(--bad)'}">${rt>0?'+':''}${rt}</b><span>レート増減</span></div>`+
+    (()=>{const ph=curPhase(),er=endRate(ph);
+      return `<div class="kpi"><b>${esc(ph&&ph.div||'—')}</b><span>開始Division</span></div>`+
+        `<div class="kpi"><b>${er===null?'—':er}</b><span>現在レート</span></div>`;})();
   $('#recWL').innerHTML=`<i class="w" style="width:${w/n*100}%"></i><i class="d" style="width:${d/n*100}%"></i><i class="l" style="width:${l/n*100}%"></i>`;
   aggTable('#aggMyStyle',agg(ms,m=>m.ms),'自分のスタイル');
   aggTable('#aggOppForm',agg(ms,m=>m.of),'相手フォメ');
@@ -1426,14 +1558,21 @@ function renderRate(ms){
   const s=ms.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const svg=$('#rateChart');
   if(s.length<2){svg.innerHTML='<text x="320" y="100" fill="#66718a" font-size="13" text-anchor="middle">レート増減を2試合以上記録するとグラフが出ます</text>';return;}
-  let acc=0;const pts=s.map(m=>acc+=(+m.rt||0));
-  const mn=Math.min(0,...pts),mx=Math.max(0,...pts),rng=(mx-mn)||1;
+  /* 開始レートが設定されていれば実レート、なければ増減の累積で描く */
+  const ph=curPhase(), base=ph&&ph.rate!==''&&ph.rate!=null&&Number.isFinite(Number(ph.rate))?Number(ph.rate):null;
+  let acc=base??0;const pts=s.map(m=>acc+=(+m.rt||0));
+  const zero=base??0;
+  const mn=Math.min(zero,...pts),mx=Math.max(zero,...pts),rng=(mx-mn)||1;
   const X=i=>30+i*(580/(pts.length-1)), Y=v=>175-(v-mn)/rng*140;
-  let g=`<line x1="30" y1="${Y(0)}" x2="610" y2="${Y(0)}" stroke="#2a3140" stroke-dasharray="4 4"/>`;
-  g+=`<polygon points="${X(0)},${Y(0)} ${pts.map((v,i)=>X(i)+','+Y(v)).join(' ')} ${X(pts.length-1)},${Y(0)}" fill="rgba(61,220,132,.14)"/>`;
+  let g=`<line x1="30" y1="${Y(zero)}" x2="610" y2="${Y(zero)}" stroke="#2a3140" stroke-dasharray="4 4"/>`
+   +`<text x="614" y="${Y(zero)+4}" fill="#66718a" font-size="10">${base===null?'0':base}</text>`;
+  g+=`<polygon points="${X(0)},${Y(zero)} ${pts.map((v,i)=>X(i)+','+Y(v)).join(' ')} ${X(pts.length-1)},${Y(zero)}" fill="rgba(61,220,132,.14)"/>`;
   g+=`<polyline points="${pts.map((v,i)=>X(i)+','+Y(v)).join(' ')}" fill="none" stroke="#3ddc84" stroke-width="2.5"/>`;
   pts.forEach((v,i)=>g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="2.6" fill="#3ddc84"/>`);
-  g+=`<text x="30" y="16" fill="#96a1b5" font-size="11">累積レート ${pts[pts.length-1]>0?'+':''}${pts[pts.length-1]}</text>`;
+  const lastV=pts[pts.length-1], dlt=lastV-zero;
+  g+=`<text x="30" y="16" fill="#96a1b5" font-size="11">`+
+     (base===null?`累積レート ${dlt>0?'+':''}${dlt}`
+                 :`レート ${base} → ${lastV}（${dlt>0?'+':''}${dlt}）`)+`</text>`;
   svg.innerHTML=g;
 }
 function addMatch(){
@@ -1541,9 +1680,11 @@ $('#helpBody').innerHTML=`
 <div class="sec" id="s0">
   <h4><i>0</i>はじめかた<em>3ステップ</em></h4>
   <div class="steps">
-    <div><b><em>1</em>ポジションを選ぶ</b><span>ピッチのマスか「登録ポジション」から選択。素の能力値が自動でセットされます。実データはスライダー／手入力で上書きできます。</span></div>
-    <div><b><em>2</em>能力名をタップして育成</b><span>そのカテゴリのスライダーが開きます。残りタレントポイントを見ながら配分。「おすすめ自動振り」で下地を作るのも◎。</span></div>
-    <div><b><em>3</em>保存・シェア</b><span>保存すると「保存・比較」タブで最大4人まで並べて比較できます。PNG書き出しでXにも投稿できます。</span></div>
+    <div><b><em>1</em>初期能力値設定</b><span>まず<b>登録ポジション</b>を選ぶと、そのポジションの Lv.1 初期能力値が自動でセットされます。実データがあれば「スライダー / 手入力で調整」から上書き。</span></div>
+    <div><b><em>2</em>選手情報・ポジション設定</b><span>名前やプレースタイル、逆足、最大レベルを入力。ピッチのマスをタップして適性ポジションを設定します。</span></div>
+    <div><b><em>3</em>ブースター・監督・スキル</b><span>ブースター（最大2つ）、監督の適性数値とバフ、初期搭載スキル（最大10）／追加スキル（最大5）を設定。</span></div>
+    <div><b><em>4</em>能力名をタップして育成</b><span>そのカテゴリのスライダーがその場で開きます。残りタレントポイントを見ながら配分。「おすすめ自動振り」で下地を作るのも◎。</span></div>
+    <div><b><em>5</em>保存・シェア</b><span>保存すると「保存・比較」タブで最大4人まで並べて比較できます。PNGで書き出してSNSに投稿できます。</span></div>
   </div>
   <div class="note g">データはすべて<b>この端末のブラウザ内（localStorage）</b>にだけ保存されます。右上の「データ」からJSONで書き出し／読み込みができます。</div>
 </div>
@@ -1588,7 +1729,7 @@ $('#helpBody').innerHTML=`
   <h4><i>3</i>ブースター（選手）<em>最大2つ</em></h4>
   <ul>
     <li>ブースターは<b>決まった4項目</b>を上昇させる仕組み。タレントデザインの上限を超えたパフォーマンスを出せます。全<b>29種</b>。</li>
-    <li>効果値はカード固有が <b>+2 / +3</b>。<b>ブースタークラフト</b>で後付けした分は <b>+1</b> 程度と控えめです。</li>
+    <li>効果値はカード固有が <b>+2 / +3</b>、ビッグタイム等の1つ目は <b>+4</b> まであります。<b>ブースタークラフト</b>で後付けした分は <b>+1</b> 程度と控えめです。</li><li>このアプリでは<b>ブースター1が +1〜+4</b>、<b>ブースター2が +1〜+3</b>（クラフト前提で <b>+1</b> が初期値）から選べます。</li>
     <li>持てるのは<b>最大2つ</b>。クラフトできるのはブースタースロットが2つある選手のみで、ランダム／セレクトのトークンで付与・上書きします。</li>
   </ul>
   <div class="note">発動条件は2種類。<b>ノーマルブースターは常時発動</b>／トレンド選手などの<b>ライブリンク</b>は LiveUpdate評価 <b>B以上で発動・Aで最大・C〜Eは不発動</b>。</div>
@@ -1625,9 +1766,12 @@ $('#helpBody').innerHTML=`
     <li>編成画面の「ポジションエディット」は起用位置を変えるだけで、適性そのものは変わりません。</li>
   </ul>
   <div class="note">ピッチ表示は <b>CF＝最前線／ST＝セカンドトップ</b>。サイド（LWG/RWG/LMF/RMF/LSB/RSB）は縦2マス、中央（CF/ST/OMF/CMF/DMF/CB/GK）は横1マスで並べています。</div>
-  <div class="note g" style="margin-top:8px"><b>初期値プリセット</b>：登録ポジションを選ぶと素の能力値が自動でセットされます。
-    ベースは全項目 <b>${BASE_STD}</b>、そのポジションで重要な能力を <b style="color:var(--v80)">${BASE_KEY}</b>、不要な能力を <b>${BASE_LOW}</b>、
-    フィールド選手のGK能力を <b>${BASE_GK_FIELD}</b>。GKの場合は <b style="color:var(--v75)">GK5項目が ${BASE_GK}</b>、フィールド能力は低めになります。</div>
+  <div class="note g" style="margin-top:8px"><b>初期能力値設定</b>：登録ポジションを選ぶと Lv.1 の初期能力値が自動でセットされます。
+    値は<b>直近1年のガチャ搭載カードの Lv.1 実データ</b>を基準にしたポジション別プリセットで、
+    スライダー／手入力で自由に上書きできます。フィールド選手のGK能力はどのカードも一律 <b>${GK_FIELD}</b> です。</div>
+  <div class="scroll" style="max-height:none;margin-top:10px"><table><thead><tr><th>ポジション</th><th class="num">ベース水準</th><th>主要能力（初期値の高い順）</th></tr></thead><tbody>
+  ${POS.map(p=>`<tr><td><b>${p}</b></td><td class="num">${baseLevel(p)}</td><td style="white-space:normal">${keyStats(p,5).map(k=>`${SNAME[k]} <b style="color:${vColor(PRESET[p][k])}">${PRESET[p][k]}</b>`).join('／')}</td></tr>`).join('')}
+  </tbody></table></div>
 </div>
 
 <!-- ============ 6. スキル ============ -->
@@ -1636,7 +1780,9 @@ $('#helpBody').innerHTML=`
   <div class="kv">
     <div><b>初期搭載スキル 最大${MAX_BASE_SKILL}個</b>カードが最初から持っているもの。特殊スキルもここに含まれます。</div>
     <div><b>追加スキル 最大${MAX_ADD_SKILL}個</b>スキル追加／在庫からの継承で後付けしたもの。通常スキルのみ。</div>
+    <div><b>重複は選べません</b>同じスキルを両方の枠で選ぶことはできません（すでに持っているスキルは追加できないため）。</div>
   </div>
+  <div class="note">分類は<b>${Object.keys(SKILLS).join('／')}</b>の6系統・全<b>${ALLSKILLS.length}種</b>（通常 ${NORMALSKILLS.length}＋特殊 ${SPECIAL.size}）。</div>
   <div class="note p"><b>特殊スキル</b>（<span style="color:#ff8ab4">ピンク表示</span>）は<b>後から追加できないカード固有</b>のスキルです。欲しい場合は最初から持っているカードを引くしかありません。<br>
     <span style="font-size:11.5px;color:var(--tx3)">該当 ${SPECIAL.size}種：${[...SPECIAL].join('／')}</span></div>
 </div>
@@ -1657,10 +1803,11 @@ $('#helpBody').innerHTML=`
 <div class="sec" id="s8">
   <h4><i>8</i>戦績管理<em>フェーズ単位</em></h4>
   <ul>
-    <li>フェーズの<b>開始日・終了日</b>を決めて「期間を確定」。期間が過ぎると<b>同じ長さの次フェーズが自動で作成</b>されます（前フェーズ終了の翌日開始）。</li>
+    <li>フェーズの<b>開始日・終了日</b>に加えて、<b>開始Division</b>と<b>開始レート</b>を設定できます。</li>
+    <li>期間が過ぎると<b>同じ長さの次フェーズが自動で作成</b>されます（前フェーズ終了の翌日開始）。このとき<b>Divisionと到達レートが次フェーズの開始値として引き継がれます</b>。</li>
+    <li>開始レートを入れておくと、レート推移グラフが<b>実際のレート</b>（開始レート＋増減）で描かれ、サマリーにも現在レートが出ます。未入力なら従来どおり増減の累積で表示します。</li>
     <li>1試合ごとに スコア／自分と相手のチームスタイル・フォーメーション／Division／レート増減／得点者／メモ を記録。</li>
-    <li>集計は<b>自分のスタイル別・自分のフォメ別・相手のスタイル別・相手のフォメ別</b>の4軸で勝率を自動計算します。</li>
-    <li>レート増減は累積グラフで推移を確認。CSV書き出しにも対応。</li>
+    <li>集計は<b>自分のスタイル別・自分のフォメ別・相手のスタイル別・相手のフォメ別</b>の4軸で勝率を自動計算します。CSV書き出しにも対応。</li>
   </ul>
 </div>
 
@@ -1668,13 +1815,17 @@ $('#helpBody').innerHTML=`
 <div class="sec" id="s9">
   <h4><i>9</i>計算モデルと精度<em>推定値について</em></h4>
   <div class="formula">
-    <span>素値(Lv.1)</span> ＋ <span class="a">タレントポイント</span> ＋ <span class="y">選手ブースター</span> ＋ <span class="b">監督ブースター</span><br>
+    <span>初期能力値(Lv.1)</span> ＋ <span class="a">タレントポイント</span> ＋ <span class="y">選手ブースター</span> ＋ <span class="b">監督ブースター</span><br>
     ↓ 最後に <span class="b">監督の適性補正</span> を適用<br>
     <b style="color:var(--ac)">＝ 育成後の能力値</b>
   </div>
   <div class="note g"><b>実データでの検算</b>：BTジュード・ベリンガム（OMF／最大Lv.32／TP62／最大総合値108）で照合したところ、
     育成後の<b>26項目中23項目が実機と完全一致</b>、残り3項目も±1（平均絶対誤差 0.115）、<b>推定総合値も108で一致</b>しました。</div>
   <div class="note">総合値の正確な計算式は非公開のため、<b>ポジション別に重み付けした加重平均に係数を掛けた独自の推定値</b>です。カードや構成によっては実機と数ポイントずれることがあります。</div>
+  <div class="note" style="border-color:var(--pink);background:rgba(255,46,120,.07)"><b>能力値の上限（${STAT_CAP}）とブースターによる突破</b><br>
+    初期能力値＋タレントポイントで伸ばせるのは <b>${STAT_CAP} まで</b>。ただし<b>ブースターの上昇分は上限の外側に乗る</b>ため、その分だけ ${STAT_CAP} を超えられます。<br>
+    <span style="color:var(--tx3)">例）ブースター1に<b>ゴールセービング(+3)</b>を積んだGKなら、GKセンスの上限は ${STAT_CAP}+3 = <b>${STAT_CAP+3}</b>。
+    ブースター1(+4)とブースター2(+3)が同じ能力に重なれば <b>${STAT_CAP+7}</b> まで伸びます。監督の適性補正は上限を超えません。</span></div>
 </div>
 
 <div class="note p" style="margin-top:18px">※本ツールは<b>非公式のファンメイド計算機</b>です。ゲーム本体・権利者とは一切関係ありません。データは端末のブラウザ内（localStorage）にのみ保存されます。</div>
@@ -1690,7 +1841,7 @@ function go(p){$$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.p===p));
 $$('.tab').forEach(t=>t.onclick=()=>go(t.dataset.p));
 
 initSelects();
-['#f_name','#f_style','#f_h','#f_w','#f_foot','#f_wff','#f_wfa','#f_cond','#f_inj','#f_lv','#g_name','#g_style','#g_apt'].forEach(s=>{
+['#f_name','#f_style','#f_h','#f_w','#f_foot','#f_wff','#f_wfa','#f_cond','#f_inj','#f_lv','#g_name','#g_apt'].forEach(s=>{
   $(s).addEventListener('input',syncFromForm); $(s).addEventListener('change',()=>{syncFromForm();renderMgr();});
 });
 $('#f_pos').onchange=()=>{
@@ -1699,11 +1850,9 @@ $('#f_pos').onchange=()=>{
   renderAll(); toast(CUR.pos+' の初期値を設定しました');
 };
 $('#btnPreset').onclick=()=>{CUR.base=structuredClone(PRESET[CUR.pos]);renderBaseEdit();renderStats();toast('初期値に戻しました');};
-$('#btnBase').onclick=()=>{
-  const b=$('#baseEdit'), open=b.style.display==='none';
-  b.style.display=open?'':'none';
-  $('#btnBase').textContent=open?'調整パネルを閉じる':'スライダー / 手入力で調整';
-};
+$('#btnBase').onclick=()=>{ renderBaseEdit(); $('#dlgBase').showModal(); };
+$('#baseClose').onclick=()=>$('#dlgBase').close();
+$('#baseReset').onclick=()=>{CUR.base=structuredClone(PRESET[CUR.pos]);renderBaseEdit();renderStats();toast(CUR.pos+' の初期能力値に戻しました');};
 $('#btnBelli').onclick=()=>{
   CUR=Object.assign(blank(BELLINGHAM.pos),structuredClone(BELLINGHAM));
   CUR.tp=Object.assign(Object.fromEntries(TCAT.map(c=>[c[0],0])),BELLINGHAM.rec);
@@ -1714,7 +1863,6 @@ $('#btnReset').onclick=()=>{PREV=structuredClone(CUR.tp);TCAT.forEach(c=>CUR.tp[
 $('#btnUndo').onclick=()=>{if(!PREV){toast('戻す履歴がありません');return;}const t=structuredClone(CUR.tp);CUR.tp=PREV;PREV=t;renderStats();};
 $('#btnSave').onclick=savePlayer;
 $('#btnShareTxt').onclick=()=>{syncFromForm();copy(shareText());};
-$('#btnShareX').onclick=()=>{syncFromForm();window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText()),'_blank');};
 $('#btnShareImg').onclick=sharePng;
 $('#btnShareUrl').onclick=()=>copy(shareUrl());
 $('#btnCompare').onclick=compare;
@@ -1723,9 +1871,10 @@ $('#phSel').onchange=()=>{DB.curPhase=$('#phSel').value;save();renderRec();};
 $('#phSave').onclick=()=>{
   const ph=curPhase(); if(!ph)return;
   ph.name=$('#ph_n').value||ph.name; ph.start=$('#ph_s').value||ph.start; ph.end=$('#ph_e').value||ph.end;
+  ph.div=$('#ph_div').value; ph.rate=$('#ph_rate').value;
   if(ph.end<ph.start){toast('終了日は開始日以降にしてください');return;}
   DB.phases.sort((a,b)=>(a.start||'').localeCompare(b.start||''));
-  save();renderRec();toast('フェーズ期間を確定しました');
+  save();renderRec();toast('フェーズの期間と開始条件を確定しました');
 };
 $('#phAdd').onclick=()=>{
   const last=DB.phases[DB.phases.length-1];
