@@ -67,6 +67,8 @@ textarea{resize:vertical;min-height:60px}
 .btn.p{background:linear-gradient(140deg,var(--ac),var(--ac2));color:#062012;border-color:transparent}
 .btn.d{color:var(--bad);border-color:#4a2b3a}
 .btn.s{padding:6px 10px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.4;cursor:default}
+.btn:disabled:hover{border-color:var(--line)}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--card2);color:var(--tx2);border:1px solid var(--line)}
 .pill.g{background:rgba(61,220,132,.14);color:var(--ac);border-color:rgba(61,220,132,.3)}
@@ -327,6 +329,13 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
         <div id="aptTable" class="muted"></div>
         <div class="hr"></div>
         <div id="mgrBoostBox"></div>
+        <div class="hr"></div>
+        <div class="muted" style="margin-bottom:6px">監督プリセット：適性数値とバフの組み合わせを保存して、ほかの選手でも呼び出せます。</div>
+        <div class="btnrow" style="margin-bottom:8px">
+          <button class="btn s" id="mgrPresetSave">この監督を保存</button>
+          <button class="btn s" id="mgrPresetOpen">呼び出す<span id="mgrPresetCnt" style="margin-left:5px;opacity:.7"></span></button>
+        </div>
+        <div id="mgrPresetBox"></div>
       </div>
 
       <div class="card">
@@ -781,9 +790,10 @@ const BELLINGHAM={
    ストア
    ===================================================================== */
 const KEY='pitchlab.v3';
-const DEF={players:[],phases:[],curPhase:null,matches:[],stock:[],wish:[]};
+const DEF={players:[],phases:[],curPhase:null,matches:[],stock:[],wish:[],managers:[]};
 let DB=load();
-function load(){try{const r=JSON.parse(localStorage.getItem(KEY));return Object.assign(structuredClone(DEF),r||{});}catch(e){return structuredClone(DEF);}}
+function load(){try{const r=Object.assign(structuredClone(DEF),JSON.parse(localStorage.getItem(KEY))||{});
+  if(!Array.isArray(r.managers))r.managers=[];return r;}catch(e){return structuredClone(DEF);}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){toast('保存に失敗しました');}}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 let TO; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(TO);TO=setTimeout(()=>t.classList.remove('on'),2100);}
@@ -947,6 +957,76 @@ function renderMgr(){
     b[i]={k:el.value,v:MGR_BOOST_VAL};
     renderMgr();renderStats();
   });
+  renderMgrPresets();
+}
+
+/* --- 監督プリセット：適性数値＋バフ2枠をまとめて保存・呼び出し --- */
+/* 保存対象は監督そのものの情報だけ。選手側のデータには一切触れません */
+function mgrPresetLabel(m){
+  const buf=mgrBuffList(m).map(s=>`${SNAME[s.k]} +${s.v}`).join(' / ');
+  return (m.apt?`適性 ${m.apt}`:'適性なし')+(buf?` ／ ${buf}`:' ／ バフなし');
+}
+/* 同じ監督（名前・適性・バフの組み合わせ）かどうか */
+function mgrPresetKey(m){
+  return [String(m.name||'').trim(),m.apt||0,
+    mgrBuffList(m).map(s=>s.k).sort().join(',')].join('|');
+}
+function saveMgrPreset(){
+  syncFromForm();
+  const m=mgrOf(CUR);
+  if(!m.apt&&!mgrBuffList(m).length){toast('適性数値かバフを設定してから保存してください');return;}
+  const p={id:uid(),name:String(m.name||'').trim(),apt:m.apt||0,
+    b:[0,1].map(i=>({k:(m.b||[])[i]?.k||'',v:MGR_BOOST_VAL})),
+    at:new Date().toISOString()};
+  if(DB.managers.some(x=>mgrPresetKey(x)===mgrPresetKey(p))){toast('同じ内容の監督がすでに保存されています');return;}
+  DB.managers.unshift(p); save(); renderMgrPresets(); toast('監督を保存しました');
+}
+function applyMgrPreset(id){
+  const p=DB.managers.find(x=>x.id===id); if(!p)return;
+  CUR.mgr={name:p.name||'',style:mgrOf(CUR).style||'ポゼッション',apt:p.apt||0,
+    b:[0,1].map(i=>({k:(p.b||[])[i]?.k||'',v:MGR_BOOST_VAL}))};
+  renderMgr(); renderStats(); toast('監督を呼び出しました');
+}
+/* 保存済みのうち、いま設定中の監督と一致するもの */
+const curMgrPreset=()=>{const k=mgrPresetKey(mgrOf(CUR));return (DB.managers||[]).find(p=>mgrPresetKey(p)===k)||null;};
+const mgrBuffPills=m=>mgrBuffList(m).map(s=>`<span class="pill b">${esc(SNAME[s.k])} +${s.v}</span>`).join(' ')||'<span class="muted">バフなし</span>';
+/* 画面には「使用中の監督」1件だけを常時表示。保存分は「呼び出す」から開く */
+function renderMgrPresets(){
+  const box=$('#mgrPresetBox'); if(!box)return;
+  const L=DB.managers||[], cnt=$('#mgrPresetCnt'), open=$('#mgrPresetOpen');
+  if(cnt)cnt.textContent=L.length?String(L.length):'';
+  if(open)open.disabled=!L.length;
+  if(!L.length){box.innerHTML='<div class="muted">保存された監督はまだありません。</div>';return;}
+  const p=curMgrPreset();
+  box.innerHTML=p
+    ? `<div class="note g" style="margin:0"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+         <span class="pill g">使用中</span><b>${esc(p.name||'（名称なし）')}</b>
+         <span class="muted">${p.apt?'適性 '+p.apt:'適性なし'}</span>${mgrBuffPills(p)}
+       </div></div>`
+    : `<div class="note" style="margin:0"><span class="muted">いまの監督は保存されていません。「この監督を保存」で登録するか、「呼び出す」から保存済みの監督を選べます。</span></div>`;
+}
+/* 保存済み監督の一覧（ダイアログ） */
+function openMgrPresetDlg(){
+  const L=DB.managers||[];
+  if(!L.length){toast('保存された監督はまだありません');return;}
+  $('#dlgT').textContent='保存した監督';
+  const cur=mgrPresetKey(mgrOf(CUR));
+  $('#dlgB').innerHTML=`<div class="muted" style="margin-bottom:8px">呼び出すと、いまの選手の監督設定（適性数値とバフ）が置き換わります。</div>
+    <div class="scroll"><table><thead><tr>
+      <th>監督名</th><th class="num">適性</th><th>バフ</th><th></th>
+    </tr></thead><tbody>`+L.map(p=>`<tr>
+      <td><b>${esc(p.name||'（名称なし）')}</b>${mgrPresetKey(p)===cur?' <span class="pill g">使用中</span>':''}</td>
+      <td class="num">${p.apt||'—'}</td>
+      <td>${mgrBuffPills(p)}</td>
+      <td><button class="btn s" data-mgload="${p.id}">呼び出し</button> <button class="btn s d" data-mgdel="${p.id}">削除</button></td>
+    </tr>`).join('')+`</tbody></table></div>`;
+  $$('#dlgB [data-mgload]').forEach(b=>b.onclick=()=>{applyMgrPreset(b.dataset.mgload);$('#dlg').close();});
+  $$('#dlgB [data-mgdel]').forEach(b=>b.onclick=()=>{
+    DB.managers=DB.managers.filter(x=>x.id!==b.dataset.mgdel); save(); renderMgrPresets();
+    if(DB.managers.length)openMgrPresetDlg(); else $('#dlg').close();
+    toast('削除しました');
+  });
+  $('#dlg').showModal();
 }
 /* sel=この枠の選択リスト / other=もう一方の枠（重複選択を禁止する） */
 function skillChips(sel,other,attr,onlyNormal,limit){
@@ -1750,6 +1830,8 @@ $('#helpBody').innerHTML=`
   </tbody></table></div>
   <div class="note" style="margin-top:12px"><b>② 監督ブースター（バフ）</b><br>
     選手ブースターと違い、<b>指定された能力値そのもの</b>（オフェンスセンス等）がスカッド全員 <b>+${MGR_BOOST_VAL}</b> されます。監督は<b>最大2つ</b>持ちます。</div>
+  <div class="note" style="margin-top:12px"><b>③ 監督プリセット</b><br>
+    監督はスカッド共通なので、<b>「この監督を保存」</b>で適性数値とバフの組み合わせを登録しておけます。画面には<b>いま使用中の監督だけ</b>が表示され、保存した監督は<b>「呼び出す」</b>から一覧を開いて選べます。</div>
 </div>
 
 <!-- ============ 5. ポジション適性 ============ -->
@@ -1862,6 +1944,8 @@ $('#btnAuto').onclick=autoAssign;
 $('#btnReset').onclick=()=>{PREV=structuredClone(CUR.tp);TCAT.forEach(c=>CUR.tp[c[0]]=0);renderStats();toast('リセットしました');};
 $('#btnUndo').onclick=()=>{if(!PREV){toast('戻す履歴がありません');return;}const t=structuredClone(CUR.tp);CUR.tp=PREV;PREV=t;renderStats();};
 $('#btnSave').onclick=savePlayer;
+$('#mgrPresetSave').onclick=saveMgrPreset;
+$('#mgrPresetOpen').onclick=openMgrPresetDlg;
 $('#btnShareTxt').onclick=()=>{syncFromForm();copy(shareText());};
 $('#btnShareImg').onclick=sharePng;
 $('#btnShareUrl').onclick=()=>copy(shareUrl());
@@ -1907,10 +1991,10 @@ $('#btnData').onclick=()=>{
     a.download='pitchlab-backup.json';a.click();};
   $('#dImp').onclick=()=>$('#dFile').click();
   $('#dFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-    r.onload=()=>{try{DB=Object.assign(structuredClone(DEF),JSON.parse(r.result));save();
-      renderLib();renderRec();renderSkl();$('#dlg').close();toast('読み込みました');}catch(x){toast('読み込みに失敗');}};r.readAsText(f);};
+    r.onload=()=>{try{DB=Object.assign(structuredClone(DEF),JSON.parse(r.result));if(!Array.isArray(DB.managers))DB.managers=[];save();
+      renderLib();renderRec();renderSkl();renderMgrPresets();$('#dlg').close();toast('読み込みました');}catch(x){toast('読み込みに失敗');}};r.readAsText(f);};
   $('#dClr').onclick=()=>{if(confirm('すべてのデータを削除します。よろしいですか？')){localStorage.removeItem(KEY);DB=structuredClone(DEF);
-    renderLib();renderRec();renderSkl();$('#dlg').close();toast('削除しました');}};
+    renderLib();renderRec();renderSkl();renderMgrPresets();$('#dlg').close();toast('削除しました');}};
 };
 
 (function(){
