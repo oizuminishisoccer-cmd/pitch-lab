@@ -25,6 +25,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;padding:0;overflow-x:hidden}
+/* overflow-x:hidden はスクロールコンテナを作って position:sticky を無効化してしまう。
+   対応ブラウザでは clip に置き換えて、上部タブの固定を効かせる */
+@supports (overflow-x:clip){ html,body{overflow-x:clip} }
 body{
   background:radial-gradient(1100px 520px at 50% -8%,#161d2b 0%,var(--bg) 62%) fixed;
   color:var(--tx);
@@ -180,22 +183,22 @@ tbody tr:hover{background:rgba(255,255,255,.03)}
 /* 項目名だけ固定幅。残りは選手の列で等分して右に余白を作らない */
 table.cmp{table-layout:fixed;width:100%}
 /* 長い選手名は列からはみ出さず折り返す */
-table.cmp th{padding-top:9px;padding-bottom:9px;white-space:normal;overflow-wrap:anywhere}
+table.cmp th{padding-top:9px;padding-bottom:9px;white-space:normal;overflow-wrap:anywhere;font-size:12.5px;color:var(--tx2)}
 table.cmp th.num,table.cmp td.cmpv,table.cmp td.cmpd,table.cmp td.cmpi{text-align:center}
-table.cmp td{padding-top:4px;padding-bottom:4px}
-.cmpc-h{width:162px}   /* 項目名（能力名が10文字でも折り返さない幅） */
-.cmpc-d{width:72px}    /* 差異 */
-td.cmph{font-weight:400;color:var(--tx2);font-size:13.5px;white-space:nowrap}
-td.cmpi{color:var(--tx);white-space:normal;font-size:12.5px}
+table.cmp td{padding-top:5px;padding-bottom:5px}
+.cmpc-h{width:178px}   /* 項目名（能力名が10文字でも折り返さない幅） */
+.cmpc-d{width:78px}    /* 差異 */
+td.cmph{font-weight:400;color:var(--tx);font-size:15px;white-space:nowrap}
+td.cmpi{color:var(--tx);white-space:normal;font-size:13.5px}
 /* 比較表はパネル内でスクロールさせず、全体を出してページごとスクロールする */
 .cmpwrap{max-height:none;overflow:visible}
 .cmpwrap th{position:sticky;top:118px;z-index:5;background:var(--card)}
-td.cmpv{font-size:13.5px}
+td.cmpv{font-size:16px}
 /* 数値を包む小さなボックス。最高＝緑／最低＝赤 */
-.vbox{display:inline-block;min-width:36px;padding:3px 7px;border-radius:7px;font-weight:800;line-height:1.25}
+.vbox{display:inline-block;min-width:42px;padding:3px 8px;border-radius:7px;font-weight:800;line-height:1.25}
 .vbox.hi{background:rgba(61,220,132,.18)}
 .vbox.lo{background:rgba(255,91,76,.16)}
-td.cmpd{font-weight:800;font-size:12.5px;background:rgba(255,255,255,.025)}
+td.cmpd{font-weight:800;font-size:14px;background:rgba(255,255,255,.025)}
 tr.cmpcat td{color:var(--tx);font-size:19.5px;font-weight:800;letter-spacing:.02em;padding:12px 9px 8px;background:none}
 /* 足のマーク：利き足は塗り、逆足は薄い点線 */
 .footwrap{display:inline-flex;gap:10px;align-items:center}
@@ -204,8 +207,8 @@ tr.cmpcat td{color:var(--tx);font-size:19.5px;font-weight:800;letter-spacing:.02
 .footbox i{font-style:normal;font-size:9.5px;font-weight:700;margin-top:1px}
 /* スキル比較：1行＝1スキル、持っている選手にチェック */
 .cmpsec{font-size:19.5px;font-weight:800;color:var(--tx);margin:16px 0 8px}
-.cmpc-s{width:216px}   /* スキル名（15文字でも折り返さない幅） */
-td.skn2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);font-size:12px}
+.cmpc-s{width:228px}   /* スキル名（16文字でも折り返さない幅） */
+td.skn2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);font-size:13px}
 td.skn2.sp{color:var(--pink)}
 tr.skdup td{background:rgba(255,211,92,.07)}
 tr.skdup td.skn2{color:var(--gold);font-weight:800}
@@ -305,12 +308,14 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
   .btn.s{padding:8px 12px;font-size:12.5px}
   .chip{padding:7px 11px;font-size:12.5px;margin:0 5px 6px 0}
   /* 比較テーブルはモバイルでも項目名が読める幅を確保（足りなければ横スクロール） */
-  .cmpc-h{width:142px}
-  .cmpc-d{width:58px}
-  td.cmph{font-size:12.5px}
-  .vbox{min-width:30px;padding:3px 5px}
-  .cmpc-s{width:180px}
-  td.skn2{font-size:11px}
+  .cmpc-h{width:164px}
+  .cmpc-d{width:64px}
+  td.cmph{font-size:14px}
+  td.cmpv{font-size:15px}
+  td.cmpd{font-size:13px}
+  .vbox{min-width:34px;padding:3px 6px}
+  .cmpc-s{width:212px}
+  td.skn2{font-size:12px}
   .cmpwrap th{top:96px}
   .edticks{margin-right:82px}
   tr.cmpcat td,.cmpsec{font-size:17px}
@@ -641,6 +646,13 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 
 <div class="toast" id="toast"></div>
 <dialog id="dlg"><div class="dlg"><div class="dlghd"><h3 id="dlgT" style="font-size:14px"></h3><button class="btn s" onclick="document.getElementById('dlg').close()">閉じる</button></div><div id="dlgB"></div></div></dialog>
+<!-- 削除などの確認。ブラウザ標準の confirm は環境によって出ないことがあるためアプリ内で表示する -->
+<dialog id="dlg2"><div class="dlg"><div class="dlghd"><h3 id="dlg2T" style="font-size:14px"></h3></div>
+  <div id="dlg2B"></div>
+  <div class="btnrow" style="margin-top:14px;justify-content:flex-end">
+    <button class="btn s" id="dlg2No">キャンセル</button>
+    <button class="btn s d" id="dlg2Yes">削除する</button>
+  </div></div></dialog>
 
 <dialog id="dlgBase"><div class="dlg">
   <div class="dlghd">
@@ -918,6 +930,18 @@ function load(){try{const r=Object.assign(structuredClone(DEF),JSON.parse(localS
   return r;}catch(e){return structuredClone(DEF);}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){toast('保存に失敗しました');}}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+/* --- 確認ダイアログ ---
+   ブラウザ標準の confirm() はホーム画面アプリや一部ブラウザで表示されないことがあるため、
+   削除の確認はアプリ内のダイアログで行う。o={title,html,okText,onOk} */
+function askConfirm(o){
+  const d=$('#dlg2'); if(!d){if(confirm(o.title))o.onOk();return;}
+  $('#dlg2T').textContent=o.title||'確認';
+  $('#dlg2B').innerHTML=o.html||'';
+  $('#dlg2Yes').textContent=o.okText||'削除する';
+  $('#dlg2No').onclick=()=>d.close();
+  $('#dlg2Yes').onclick=()=>{d.close();o.onOk&&o.onOk();};
+  if(typeof d.showModal==='function')d.showModal(); else d.setAttribute('open','');
+}
 let TO; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(TO);TO=setTimeout(()=>t.classList.remove('on'),2100);}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* 日付はローカルタイムゾーン基準（JST等でもズレない） */
@@ -1463,7 +1487,7 @@ function renderLib(){
     if($$('#libList .cmpck:checked').length>4){c.checked=false;toast('比較は最大4人までです');}
     compare({quiet:true});
   });
-  compare({quiet:true,noScroll:true});
+  compare({quiet:true});
 }
 /* チェックを全部外して比較パネルを閉じる */
 function clearCompare(){
@@ -1564,7 +1588,7 @@ function compare(opt){
      STATS.filter(s=>s[2]===c).map(([k,nm])=>`<tr><td class="cmph">${esc(nm)}</td>${ps.map((_,i)=>cell(k,i)).join('')}${diffCell(k)}</tr>`).join('')).join('')}
    </tbody></table></div>
    <div class="cmpsec">スキル</div>${skBlock}`;
-  if(!opt.noScroll)$('#cmpCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+  /* チェックしただけで勝手にスクロールしない（見たいときに自分でスクロールしてもらう） */
 }
 
 /* =====================================================================
@@ -1728,13 +1752,14 @@ function sharePng(){
 
   const fname=(CUR.name||'player').replace(/[\\/:*?"<>|]/g,'_')+'.png';
   const dl=href=>{const a2=document.createElement('a');a2.download=fname;a2.href=href;a2.click();toast('PNGを書き出しました');};
-  /* スマホでは共有シート（Web Share API）から直接Xなどに送れる */
-  if(typeof c.toBlob==='function'&&navigator.canShare){
+  if(typeof c.toBlob==='function'){
     c.toBlob(async b=>{
       if(!b){dl(c.toDataURL('image/png'));return;}
+      /* スマホでは共有シート（Web Share API）から直接Xなどに送れる */
       try{
         const f=new File([b],fname,{type:'image/png'});
-        if(navigator.canShare({files:[f]})){ await navigator.share({files:[f],text:shareText()}); toast('共有しました'); return; }
+        /* X などに送るときは画像だけ。本文は入れない（入れたい人は「シェア文をコピー」から） */
+        if(navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f]}); toast('共有しました'); return; }
       }catch(e){ if(e&&e.name==='AbortError')return; }
       dl(URL.createObjectURL(b));
     },'image/png');
@@ -2304,9 +2329,11 @@ $('#btnCmpClear').onclick=clearCompare;
 /* 取り返しがつかないので2段階で確認する */
 $('#btnLibClear').onclick=()=>{
   if(!DB.players.length){toast('保存された育成がありません');return;}
-  if(!confirm(`保存された育成 ${DB.players.length}件 をすべて削除します。`))return;
-  if(!confirm('⚠ 本当によろしいですか？\n削除した育成は元に戻せません。\n残しておきたい場合は「データ」→「JSONで書き出し」でバックアップしてください。'))return;
-  DB.players=[];save();renderLib();$('#cmpCard').style.display='none';toast('保存した育成を削除しました');
+  askConfirm({title:'育成消去',okText:'次へ',
+    html:`保存された育成 <b>${DB.players.length}件</b> をすべて削除します。`,
+    onOk:()=>askConfirm({title:'⚠ 本当によろしいですか？',okText:'すべて削除する',
+      html:`削除した育成は元に戻せません。<br><span class="muted">残しておきたい場合は「データ」→「JSONで書き出し」でバックアップしてください。</span>`,
+      onOk:()=>{DB.players=[];save();renderLib();$('#cmpCard').style.display='none';toast('保存した育成を削除しました');}})});
 };
 $('#phSel').onchange=()=>{DB.curPhase=$('#phSel').value;save();renderRec();};
 $('#phSave').onclick=()=>{
@@ -2325,9 +2352,15 @@ $('#phAdd').onclick=()=>{
 };
 $('#phDel').onclick=()=>{
   const ph=curPhase(); if(!ph)return;
-  if(!confirm('このフェーズと試合記録を削除します。よろしいですか？'))return;
-  DB.matches=DB.matches.filter(m=>m.phaseId!==ph.id);
-  DB.phases=DB.phases.filter(p=>p.id!==ph.id);DB.curPhase=null;save();renderRec();
+  const cnt=DB.matches.filter(m=>m.phaseId===ph.id).length;
+  askConfirm({title:'フェーズ削除',
+    html:`<b>${esc(ph.name)}</b>（${esc(ph.start||'')}〜${esc(ph.end||'未設定')}）と、`+
+         `このフェーズの試合記録 <b>${cnt}件</b> を削除します。元に戻せません。`,
+    onOk:()=>{
+      DB.matches=DB.matches.filter(m=>m.phaseId!==ph.id);
+      DB.phases=DB.phases.filter(p=>p.id!==ph.id);DB.curPhase=null;save();renderRec();
+      toast('フェーズを削除しました');
+    }});
 };
 /* 開始Divisionを選ぶと開始レートの目安を入れる（手入力した値は上書きしない） */
 $('#ph_div').onchange=()=>{
@@ -2366,8 +2399,15 @@ $('#btnData').onclick=()=>{
   $('#dFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
     r.onload=()=>{try{DB=Object.assign(structuredClone(DEF),JSON.parse(r.result));if(!Array.isArray(DB.managers))DB.managers=[];save();
       renderLib();renderRec();renderSkl();renderMgrPresets();$('#dlg').close();toast('読み込みました');}catch(x){toast('読み込みに失敗');}};r.readAsText(f);};
-  $('#dClr').onclick=()=>{if(confirm('すべてのデータを削除します。よろしいですか？')){localStorage.removeItem(KEY);DB=structuredClone(DEF);
-    renderLib();renderRec();renderSkl();renderMgrPresets();$('#dlg').close();toast('削除しました');}};
+  $('#dClr').onclick=()=>askConfirm({title:'⚠ 全データ削除',okText:'すべて削除する',
+    html:`育成 <b>${DB.players.length}件</b>／フェーズ <b>${DB.phases.length}件</b>／試合 <b>${DB.matches.length}件</b>／`+
+         `スキル在庫 <b>${DB.stock.length}件</b>／保存した監督 <b>${(DB.managers||[]).length}件</b> を、この端末からすべて削除します。<br>`+
+         `<span class="muted">元に戻せません。先に「JSONで書き出し」でバックアップしておくと安心です。</span>`,
+    onOk:()=>{
+      localStorage.removeItem(KEY);DB=structuredClone(DEF);
+      renderLib();renderRec();renderSkl();renderMgrPresets();applyPins();
+      $('#dlg').close();toast('すべてのデータを削除しました');
+    }});
 };
 
 (function(){
