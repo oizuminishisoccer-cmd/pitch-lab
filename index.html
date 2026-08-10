@@ -457,10 +457,6 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <div class="card">
         <h3>7. 能力値から育成 <span class="sub">能力名をタップするとスライダーが開きます（「振った数」は手入力もできます）</span></h3>
         <div class="ovr" style="margin-bottom:12px">
-          <div>
-            <div class="ovrnum" id="ovrNum">—</div>
-            <div class="muted" style="letter-spacing:.1em">推定総合値</div>
-          </div>
           <div style="flex:1;min-width:200px">
             <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
               <span class="muted">残りタレントポイント</span><b id="tpLeft" style="font-variant-numeric:tabular-nums">62 / 62</b>
@@ -609,7 +605,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <div class="muted" style="margin-top:6px">※ モメンタムドリブル等の<b>特殊スキル</b>はスキル追加で獲得できないため一覧に含めていません。</div>
       <div class="hr"></div>
       <h3>ウィッシュリスト <span class="sub">欲しいスキルを選ぶと在庫と照合</span></h3>
-      <div id="wishBox" style="max-height:230px;overflow:auto"></div>
+      <div id="wishBox" style="max-height:min(62vh,560px);overflow:auto"></div>
     </div>
     <div class="card">
       <h3>在庫サマリー</h3>
@@ -1288,7 +1284,6 @@ function renderStats(){
     openFocus(el.dataset.sk);
   });
   bindEditor();
-  $('#ovrNum').textContent=overall(final,CUR.pos);
   updateTPBar();
 
   const apt=Object.entries(CUR.apt).sort((a,b)=>b[1]-a[1]);
@@ -1376,7 +1371,6 @@ function paintStats(f){
     const add=tp[k]+boost[k]+mgrb[k]+aptb[k];
     d.textContent=add?'+'+add:'';
   });
-  $('#ovrNum').textContent=overall(f,CUR.pos);
   renderRadar(f);
 }
 function autoAssign(){
@@ -1619,8 +1613,27 @@ async function copy(t){
 }
 
 /* --- PNG カード（ゲーム画面風・3列／増加量は非表示） --- */
-function sharePng(){
+/* PNGを共有シートで送れるか（スマホ判定） */
+function canShareImage(){
+  try{ return !!(navigator.canShare&&navigator.canShare({files:[new File([new Uint8Array(1)],'a.png',{type:'image/png'})]})); }
+  catch(e){ return false; }
+}
+async function sharePng(){
   syncFromForm();
+  /* 「名前をつけて保存」はユーザー操作の直後にしか開けないため、
+     描画より先に、クリック直後のこのタイミングで保存先を聞く（PC・対応ブラウザのみ） */
+  let fileHandle=null, picked=false;
+  const preName=((CUR.name||$('#f_name').value||'player').replace(/[\\/:*?"<>|]/g,'_'))+'.png';
+  if(!canShareImage()&&typeof window.showSaveFilePicker==='function'){
+    picked=true;
+    try{
+      fileHandle=await window.showSaveFilePicker({suggestedName:preName,
+        types:[{description:'PNG画像',accept:{'image/png':['.png']}}]});
+    }catch(e){
+      if(e&&e.name==='AbortError')return;   /* キャンセルなら何もしない */
+      picked=false;                          /* 使えなければ従来のダウンロードへ */
+    }
+  }
   const {final}=finalStats();
   const m=mgrOf(CUR);
   const W0=760, H_MIN=1180, H_MAX=1440;
@@ -1755,6 +1768,11 @@ function sharePng(){
   if(typeof c.toBlob==='function'){
     c.toBlob(async b=>{
       if(!b){dl(c.toDataURL('image/png'));return;}
+      /* 先に選んだ保存先へ書き込む（PC・名前をつけて保存） */
+      if(picked&&fileHandle){
+        try{ const w=await fileHandle.createWritable(); await w.write(b); await w.close(); toast('保存しました'); return; }
+        catch(e){ /* 書き込めなければダウンロードへ */ }
+      }
       /* スマホでは共有シート（Web Share API）から直接Xなどに送れる */
       try{
         const f=new File([b],fname,{type:'image/png'});
