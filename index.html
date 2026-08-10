@@ -69,6 +69,17 @@ textarea{resize:vertical;min-height:60px}
 .btn.s{padding:6px 10px;font-size:12px;border-radius:8px}
 .btn:disabled{opacity:.4;cursor:default}
 .btn:disabled:hover{border-color:var(--line)}
+/* 選択中のトグルボタン */
+.btn.on{background:rgba(61,220,132,.16);border-color:rgba(61,220,132,.55);color:var(--ac)}
+/* 入力欄の「固定」トグル */
+.pin{margin-left:6px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);background:var(--card2);
+  color:var(--tx3);font-size:9.5px;font-weight:700;cursor:pointer;vertical-align:1px}
+.pin.on{background:rgba(61,220,132,.18);border-color:rgba(61,220,132,.55);color:var(--ac)}
+/* 終了日のおすすめ（ピンクで囲う） */
+.phhint{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;
+  border:1.5px solid var(--pink);background:rgba(255,46,120,.1);color:var(--pink)}
+.phhint:hover{background:rgba(255,46,120,.2)}
+tr.loghd td{background:var(--bg2);color:var(--tx);font-weight:800;font-size:12px;letter-spacing:.04em}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--card2);color:var(--tx2);border:1px solid var(--line)}
 .pill.g{background:rgba(61,220,132,.14);color:var(--ac);border-color:rgba(61,220,132,.3)}
@@ -76,6 +87,17 @@ textarea{resize:vertical;min-height:60px}
 .pill.y{background:rgba(255,211,92,.14);color:var(--gold);border-color:rgba(255,211,92,.3)}
 .pill.b{background:rgba(74,168,255,.14);color:var(--info);border-color:rgba(74,168,255,.3)}
 .pill.pk{background:rgba(255,46,120,.14);color:var(--pink);border-color:rgba(255,46,120,.35)}
+/* ---------- スキル系統ごとの色 ---------- */
+.pill.cat{background:rgba(var(--cc),.15);color:rgb(var(--cc));border-color:rgba(var(--cc),.4)}
+.c-drib{--cc:74,168,255}  /* ドリブル系＝青 */
+.c-pass{--cc:61,220,132}  /* パス系＝緑 */
+.c-shot{--cc:255,154,60}  /* シュート系＝オレンジ */
+.c-def{--cc:181,140,255}  /* ディフェンス系＝紫 */
+.c-gk{--cc:255,211,92}    /* GK系＝黄 */
+.c-etc{--cc:150,161,181}  /* その他＝グレー */
+/* 継承して手元から消えたスキルは二重線で消す */
+.skused{text-decoration:line-through;text-decoration-style:double;text-decoration-color:var(--bad);
+  text-decoration-thickness:1px;color:var(--tx3)}
 .muted{color:var(--tx3);font-size:12px}
 .hr{height:1px;background:var(--line);margin:12px 0}
 
@@ -120,6 +142,23 @@ textarea{resize:vertical;min-height:60px}
 .ed .hd b{color:var(--ac)}
 .ed input[type=range]{width:100%;accent-color:var(--ac);height:26px;cursor:grab;margin:0}
 .ed input[type=range]:active{cursor:grabbing}
+/* いくつ振ったかを数字と目盛りで表示 */
+.edsl{display:flex;align-items:flex-end;gap:10px}
+.edsl input[type=range]{flex:1;min-width:0}
+.edval{flex:none;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.edlb{font-style:normal;font-size:9.5px;letter-spacing:.1em;color:var(--tx3);font-weight:700;margin-bottom:1px}
+.edvv{display:flex;align-items:baseline;gap:3px}
+.edvv input{width:52px;padding:1px 4px;text-align:right;font-size:21px;font-weight:800;color:var(--ac);
+  background:var(--card2);border:1px solid var(--line);border-radius:8px;font-variant-numeric:tabular-nums;
+  -moz-appearance:textfield}
+.edvv input:focus{border-color:var(--ac);outline:none}
+.edvv input::-webkit-outer-spin-button,.edvv input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.edvv i{font-style:normal;font-size:11px;color:var(--tx3)}
+.edticks{display:flex;gap:2px;margin:1px 88px 5px 0}
+.edticks span{flex:1;height:12px;border-top:2px solid var(--line);font-size:9px;color:var(--tx3);text-align:left;line-height:1.5}
+.edticks span.on{border-top-color:var(--ac)}
+.edticks span.m{border-top-color:#3b4557}
+.edticks span.on.m{border-top-color:var(--ac)}
 .ed .mem{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .ed .mem span{background:var(--card2);border:1px solid var(--line);border-radius:7px;padding:2px 7px;font-size:10.5px;color:var(--tx3)}
 .ed .mem span b{font-size:12px;font-variant-numeric:tabular-nums}
@@ -133,6 +172,47 @@ th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);white-
 th{color:var(--tx3);font-size:11px;font-weight:600;letter-spacing:.04em;position:sticky;top:0;background:var(--card);z-index:2}
 tbody tr:hover{background:rgba(255,255,255,.03)}
 .scroll{overflow:auto;-webkit-overflow-scrolling:touch;max-height:460px;border-radius:10px;border:1px solid var(--line)}
+/* ---------- 比較テーブル ---------- */
+/* 項目名だけ固定幅。残りは選手の列で等分して右に余白を作らない */
+table.cmp{table-layout:fixed;width:100%}
+/* 長い選手名は列からはみ出さず折り返す */
+table.cmp th{padding-top:9px;padding-bottom:9px;white-space:normal;overflow-wrap:anywhere}
+table.cmp th.num,table.cmp td.cmpv,table.cmp td.cmpd,table.cmp td.cmpi{text-align:center}
+table.cmp td{padding-top:4px;padding-bottom:4px}
+.cmpc-h{width:162px}   /* 項目名（能力名が10文字でも折り返さない幅） */
+.cmpc-d{width:72px}    /* 差異 */
+td.cmph{font-weight:400;color:var(--tx2);font-size:13.5px;white-space:nowrap}
+td.cmpi{color:var(--tx);white-space:normal;font-size:12.5px}
+/* 比較表はパネル内でスクロールさせず、全体を出してページごとスクロールする */
+.cmpwrap{max-height:none;overflow:visible}
+.cmpwrap th{position:sticky;top:118px;z-index:5;background:var(--card)}
+td.cmpv{font-size:13.5px}
+/* 数値を包む小さなボックス。最高＝緑／最低＝赤 */
+.vbox{display:inline-block;min-width:36px;padding:3px 7px;border-radius:7px;font-weight:800;line-height:1.25}
+.vbox.hi{background:rgba(61,220,132,.18)}
+.vbox.lo{background:rgba(255,91,76,.16)}
+td.cmpd{font-weight:800;font-size:12.5px;background:rgba(255,255,255,.025)}
+tr.cmpcat td{color:var(--tx);font-size:19.5px;font-weight:800;letter-spacing:.02em;padding:12px 9px 8px;background:none}
+/* 足のマーク：利き足は塗り、逆足は薄い点線 */
+.footwrap{display:inline-flex;gap:10px;align-items:center}
+.footbox{display:inline-flex;flex-direction:column;align-items:center;color:var(--tx3);opacity:.45;line-height:1}
+.footbox.on{color:var(--ac);opacity:1}
+.footbox i{font-style:normal;font-size:9.5px;font-weight:700;margin-top:1px}
+/* スキル比較：1行＝1スキル、持っている選手にチェック */
+.cmpsec{font-size:19.5px;font-weight:800;color:var(--tx);margin:16px 0 8px}
+.cmpc-s{width:216px}   /* スキル名（15文字でも折り返さない幅） */
+td.skn2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);font-size:12px}
+td.skn2.sp{color:var(--pink)}
+tr.skdup td{background:rgba(255,211,92,.07)}
+tr.skdup td.skn2{color:var(--gold);font-weight:800}
+tr.skdup td.skn2.sp{color:var(--pink)}
+.skstar{font-style:normal;margin-right:4px}
+.skcnt{font-style:normal;margin-left:6px;font-size:10px;font-weight:700;color:var(--gold);
+  background:rgba(255,211,92,.16);border-radius:5px;padding:1px 5px}
+td.skck{text-align:center}
+td.skck .ck{font-style:normal;color:var(--ac);font-weight:800;font-size:14px}
+td.skck .nock{font-style:normal;color:#39414f}
+.cmpskleg{margin-top:9px;font-size:11.5px;color:var(--tx3);line-height:1.9}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .empty{padding:26px;text-align:center;color:var(--tx3);font-size:12.5px}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;background:var(--card2);border:1px solid var(--line);font-size:11.5px;margin:0 4px 4px 0;cursor:pointer;transition:.12s}
@@ -217,6 +297,16 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
   .btn{padding:11px 15px}
   .btn.s{padding:8px 12px;font-size:12.5px}
   .chip{padding:7px 11px;font-size:12.5px;margin:0 5px 6px 0}
+  /* 比較テーブルはモバイルでも項目名が読める幅を確保（足りなければ横スクロール） */
+  .cmpc-h{width:142px}
+  .cmpc-d{width:58px}
+  td.cmph{font-size:12.5px}
+  .vbox{min-width:30px;padding:3px 5px}
+  .cmpc-s{width:180px}
+  td.skn2{font-size:11px}
+  .cmpwrap th{top:96px}
+  .edticks{margin-right:82px}
+  tr.cmpcat td,.cmpsec{font-size:17px}
   .pz{min-height:48px;font-size:16px}
   .pitch{gap:7px;padding:8px}
   input[type=range]{height:30px}
@@ -228,6 +318,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
   .ovrnum{font-size:40px}
   .kpi b{font-size:19px}
   .scroll{max-height:52vh}
+  .scroll.cmpwrap{max-height:none}
   .sec{padding:12px;scroll-margin-top:104px}
   .sec>h4{font-size:14px}
   .sec>h4 em{display:none}
@@ -303,8 +394,8 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
           <label class="f"><span>ケガ耐性</span><select id="f_inj"></select></label>
         </div>
         <div class="row">
-          <label class="f"><span>最大レベル</span><input type="number" id="f_lv" value="32" min="1" max="60"></label>
-          <label class="f"><span>タレントポイント <em style="font-style:normal;color:var(--tx3)">(Lv-1)×2</em></span><input type="number" id="f_tp" value="62" readonly></label>
+          <label class="f"><span>最大レベル <em style="font-style:normal;color:var(--gold)">※必須</em></span><input type="number" id="f_lv" value="" min="0" max="60" placeholder="カードの最大Lvを入力"></label>
+          <label class="f"><span>タレントポイント <em style="font-style:normal;color:var(--tx3)">(Lv-1)×2</em></span><input type="number" id="f_tp" value="0" readonly></label>
         </div>
       </div>
 
@@ -352,7 +443,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 
     <div class="grid" style="align-content:start">
       <div class="card">
-        <h3>7. 能力値から育成 <span class="sub">能力名をタップするとスライダーが開きます</span></h3>
+        <h3>7. 能力値から育成 <span class="sub">能力名をタップするとスライダーが開きます（「振った数」は手入力もできます）</span></h3>
         <div class="ovr" style="margin-bottom:12px">
           <div>
             <div class="ovrnum" id="ovrNum">—</div>
@@ -398,15 +489,15 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 <!-- ============ 保存・比較 ============ -->
 <section class="page" id="p-lib">
   <div class="card">
-    <h3>保存した育成 <span class="sub">最大4件までチェックして比較</span></h3>
+    <h3>保存した育成 <span class="sub">チェックすると下に表示・2人目からは自動で比較</span></h3>
     <div class="btnrow" style="margin-bottom:10px">
-      <button class="btn p" id="btnCompare">選択した選手を比較</button>
-      <button class="btn s" id="btnLibClear">全消去</button>
+      <button class="btn s" id="btnCmpClear">選択取り消し</button>
+      <button class="btn s d" id="btnLibClear">育成消去</button>
     </div>
     <div id="libList"></div>
   </div>
   <div class="card" id="cmpCard" style="display:none;margin-top:14px">
-    <h3>比較 <span class="sub">各項目 最高＝緑／最低＝赤</span></h3>
+    <h3 id="cmpTitle">比較 <span class="sub">各項目 最高＝緑／最低＝赤</span></h3>
     <div id="cmpBody"></div>
   </div>
 </section>
@@ -419,8 +510,9 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <label class="f"><span>表示中のフェーズ</span><select id="phSel"></select></label>
       <div class="row">
         <label class="f"><span>開始日</span><input type="date" id="ph_s"></label>
-        <label class="f"><span>終了日</span><input type="date" id="ph_e"></label>
+        <label class="f"><span>終了日 <em style="font-style:normal;color:var(--gold)">※必須</em></span><input type="date" id="ph_e"></label>
       </div>
+      <div id="phHint" style="margin:-4px 0 8px"></div>
       <label class="f"><span>フェーズ名</span><input type="text" id="ph_n" placeholder="第1フェーズ"></label>
       <div class="row">
         <label class="f"><span>開始Division</span><select id="ph_div"></select></label>
@@ -434,7 +526,11 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <div id="phMeta" class="muted" style="margin-top:8px"></div>
     </div>
     <div class="card">
-      <h3>成績サマリー</h3>
+      <h3>成績サマリー <span class="sub" id="recScopeSub"></span></h3>
+      <div class="btnrow" style="margin-bottom:10px">
+        <button class="btn s" id="sumPhase">このフェーズ</button>
+        <button class="btn s" id="sumAll">全期間</button>
+      </div>
       <div class="kpis" id="recKpi"></div>
       <div class="wl" id="recWL" style="margin-top:10px"></div>
     </div>
@@ -448,19 +544,20 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <label class="f"><span>相手の得点</span><input type="number" id="m_ga" value="0" min="0"></label>
     </div>
     <div class="row">
-      <label class="f"><span>自分のチームスタイル</span><select id="m_ms"></select></label>
-      <label class="f"><span>自分のフォメ</span><select id="m_mf"></select></label>
+      <label class="f"><span>自分のチームスタイル <button class="pin" id="pinMs" type="button">固定</button></span><select id="m_ms"></select></label>
+      <label class="f"><span>自分のフォメ <button class="pin" id="pinMf" type="button">固定</button></span><select id="m_mf"></select></label>
     </div>
     <div class="row">
       <label class="f"><span>相手のチームスタイル</span><select id="m_os"></select></label>
       <label class="f"><span>相手のフォメ</span><select id="m_of"></select></label>
     </div>
     <div class="row">
-      <label class="f"><span>Division</span><select id="m_div"></select></label>
+      <label class="f"><span>相手のDivision</span><select id="m_div"></select></label>
       <label class="f"><span>レート増減</span><input type="number" id="m_rt" placeholder="例 18 / -12"></label>
       <label class="f"><span>得点者（カンマ区切り）</span><input type="text" id="m_sc" placeholder="ベリンガム, ハーランド"></label>
     </div>
     <label class="f"><span>メモ</span><textarea id="m_memo" placeholder="ハイプレスに崩された／サイド裏が刺さった など"></textarea></label>
+    <div id="recLock"></div>
     <div class="btnrow"><button class="btn p" id="mAdd">記録する</button><button class="btn s" id="mCsv">CSV書き出し</button></div>
   </div>
 
@@ -478,6 +575,10 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 
   <div class="card" style="margin-top:14px">
     <h3>試合ログ</h3>
+    <div class="btnrow" style="margin-bottom:8px">
+      <button class="btn s" id="logPhase">表示中のフェーズ</button>
+      <button class="btn s" id="logAll">全フェーズ（分けて表示）</button>
+    </div>
     <div class="scroll"><table id="mTable"></table></div>
   </div>
 </section>
@@ -511,8 +612,14 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
     <div class="btnrow" style="margin-bottom:8px">
       <button class="btn s" id="sFilterAll">すべて</button>
       <button class="btn s" id="sFilterStock">在庫のみ</button>
-      <button class="btn s" id="sFilterUsed">継承済みのみ</button>
+      <button class="btn s" id="sFilterUsed">継承済み</button>
     </div>
+    <div class="row" style="margin-bottom:8px">
+      <label class="f" style="flex:2"><span>検索</span>
+        <input type="text" id="sSearch" placeholder="スキル名・系統（例：ドリブル系）・継承先・メモ"></label>
+      <label class="f"><span>系統でしぼる</span><select id="sCat"></select></label>
+    </div>
+    <div id="sHit" class="muted" style="margin-bottom:6px"></div>
     <div class="scroll"><table id="sTable"></table></div>
   </div>
 
@@ -609,7 +716,8 @@ const ADJ={
 
 const STYLES=['ラインブレイカー','ボックスストライカー','ターゲットマン','デコイラン','リンクフォワード','2列目からの飛び出し','ウイングストライカー','クロサー','インサイドレシーバー','ナンバー10','チャンスメイカー','プレーメイカー','ボックストゥボックス','ビルドアップ','ハードプレス','アンカー','オーバーラップ','インナーラップサイドバック','攻撃的サイドバック','守備的サイドバック','攻撃的GK','守備的GK','（なし）'];
 const LEVEL4=['低い','普通','高い','最高'];
-const COND4=['大きい','やや大きい','小さい','とても小さい'];
+/* 調子の波：波が大きい順。既定は「小さい」 */
+const COND4=['大きい','普通','小さい'];
 const INJ3=['低い','普通','高い'];
 
 /* --- ノーマルブースター 全29種（上昇する4項目） --- */
@@ -699,6 +807,11 @@ const SKILLS={
  'その他':['キャプテンシー','スーパーサブ','闘争心','アタックトリガー']
 };
 const SKILL_CAT={}; Object.entries(SKILLS).forEach(([c,a])=>a.forEach(s=>SKILL_CAT[s]=c));
+/* 系統ごとの色クラス（在庫リスト・グラフで共通） */
+const CAT_CLASS={'ドリブル系':'c-drib','パス系':'c-pass','シュート系':'c-shot','ディフェンス系':'c-def','GK系':'c-gk','その他':'c-etc'};
+const CAT_RGB={'ドリブル系':'74,168,255','パス系':'61,220,132','シュート系':'255,154,60','ディフェンス系':'181,140,255','GK系':'255,211,92','その他':'150,161,181'};
+const catCls=c=>CAT_CLASS[c]||'c-etc';
+const catRgb=c=>CAT_RGB[c]||CAT_RGB['その他'];
 const ALLSKILLS=Object.values(SKILLS).flat();
 /* スキル追加／在庫で狙える通常スキル */
 const NORMALSKILLS=ALLSKILLS.filter(s=>!SPECIAL.has(s)&&!AUTO_SKILL.has(s));
@@ -790,10 +903,12 @@ const BELLINGHAM={
    ストア
    ===================================================================== */
 const KEY='pitchlab.v3';
-const DEF={players:[],phases:[],curPhase:null,matches:[],stock:[],wish:[],managers:[]};
+const DEF={players:[],phases:[],curPhase:null,matches:[],stock:[],wish:[],managers:[],pin:{ms:'',mf:''}};
 let DB=load();
 function load(){try{const r=Object.assign(structuredClone(DEF),JSON.parse(localStorage.getItem(KEY))||{});
-  if(!Array.isArray(r.managers))r.managers=[];return r;}catch(e){return structuredClone(DEF);}}
+  if(!Array.isArray(r.managers))r.managers=[];
+  if(!r.pin||typeof r.pin!=='object')r.pin={ms:'',mf:''};
+  return r;}catch(e){return structuredClone(DEF);}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){toast('保存に失敗しました');}}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 let TO; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(TO);TO=setTimeout(()=>t.classList.remove('on'),2100);}
@@ -807,9 +922,9 @@ const dayDiff=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z
    育成モデル
    最終値 ＝ 初期能力値(Lv.1) ＋ タレントポイント ＋ 選手ブースター ＋ 監督ブースター ＋ 監督適性補正
    ===================================================================== */
-function blank(pos='OMF'){
+function blank(pos='CF'){
   return {id:null,name:'',pos,style:'（なし）',height:'',weight:'',foot:'右足',
-    wff:'普通',wfa:'普通',cond:'小さい',inj:'普通',maxLv:32,
+    wff:'普通',wfa:'普通',cond:'小さい',inj:'普通',maxLv:0,
     boosters:[{n:'',v:3},{n:'',v:1}],
     mgr:{name:'',style:'ポゼッション',apt:0,b:[{k:'',v:MGR_BOOST_VAL},{k:'',v:MGR_BOOST_VAL}]},
     apt:{[pos]:2},skillsBase:[],skillsAdd:[],
@@ -821,7 +936,9 @@ const mgrBuffList=m=>((m&&m.b)||[]).filter(s=>s&&s.k&&SNAME[s.k]);
 const mgrBuffText=m=>mgrBuffList(m).map(s=>`${SNAME[s.k]}+${s.v}`).join('  ');
 let CUR=blank(), PREV=null, FOCUS=null, LASTSTAT=null;
 
-const tpMax=p=>Math.max(0,(Number((p||CUR).maxLv)||1)-1)*2;
+/* 最大レベルは未入力（0）を許容し、その場合はTPが0＝育成できない */
+const lvSet=p=>(Number((p||CUR).maxLv)||0)>=1;
+const tpMax=p=>Math.max(0,(Number((p||CUR).maxLv)||0)-1)*2;
 const tpUsed=p=>TCAT.reduce((s,c)=>s+COSTTBL[(p||CUR).tp[c[0]]||0],0);
 function tpAdd(p){
   const a={};SKEY.forEach(k=>a[k]=0);
@@ -1070,10 +1187,9 @@ function renderBaseEdit(){
   const p=PRESET[CUR.pos]||{};
   const key=keyStats(CUR.pos).map(k=>`${SNAME[k]} ${p[k]}`);
   $('#presetNote').innerHTML=
-    `<b>${esc(CUR.pos)}</b> の初期能力値：ベース水準 <b style="color:var(--v75)">${baseLevel(CUR.pos)}</b>`+
-    `／主要能力 <b style="color:var(--v80)">${esc(key.join('・'))}</b>`+
-    (CUR.pos==='GK'?'' : `／GK能力は一律 <b>${GK_FIELD}</b>`)+
-    `<br><span style="color:var(--tx3)">直近1年のガチャ搭載カード（BT C.ロナウド／BT J.ベリンガム／EP R.ファーディナンド）の Lv.1 実データを基準にしています。</span>`;
+    `育成したい選手の登録ポジション（カードの左上）を選択してください。`+
+    `<br><b>${esc(CUR.pos)}</b> の主要能力 <b style="color:var(--v80)">${esc(key.join('・'))}</b>`+
+    (CUR.pos==='GK'?'' : `／GK能力は一律 <b>${GK_FIELD}</b>`);
   $('#baseHdPos').textContent=`（${CUR.pos}${CUR.name?' / '+CUR.name:''}）`;
   $('#baseEdit').innerHTML=`<div class="scols">`+COLS.map(([c,n])=>
     `<div class="scol"><h4>${esc(n)}</h4>`+STATS.filter(s=>s[2]===c).map(([k,nm])=>
@@ -1114,9 +1230,12 @@ function updateTPBar(){
   $('#f_tp').value=max;
   $('#tpLeft').textContent=`${max-used} / ${max}`;
   $('#tpFill').style.width=(max?used/max*100:0).toFixed(1)+'%';
-  $('#costNote').innerHTML=`能力名をタップ → その能力が属するカテゴリのスライダーが開きます。`+
-    `コストは<b>+1〜4が1pt</b>／<b>+5〜8が2pt</b>／<b>+9〜12が3pt</b>／<b>+13〜16が4pt</b>（1カテゴリ最大+16＝40pt）。`+
-    `TPは<b>1レベルUPで2pt</b>、最大Lv.${CUR.maxLv}で合計${max}pt。`;
+  $('#costNote').innerHTML=!lvSet()
+    ? `<b style="color:var(--gold)">「2. 選手情報」の最大レベルを入力してください。</b>`+
+      `入力するとタレントポイント（(最大Lv−1)×2）が計算され、育成できるようになります。`
+    : `能力名をタップ → その能力が属するカテゴリのスライダーが開きます。`+
+      `コストは<b>+1〜4が1pt</b>／<b>+5〜8が2pt</b>／<b>+9〜12が3pt</b>／<b>+13〜16が4pt</b>（1カテゴリ最大+16＝40pt）。`+
+      `TPは<b>1レベルUPで2pt</b>、最大Lv.${CUR.maxLv}で合計${max}pt。`;
 }
 function renderStats(){
   const {final,tp,boost,mgrb,aptb}=finalStats();
@@ -1132,7 +1251,11 @@ function renderStats(){
       if(cat&&LASTSTAT===k)h+=editorHtml(cat,final);
       return h;
     }).join('')+`</div>`).join('');
-  $$('#statBox .st').forEach(el=>el.onclick=()=>openFocus(el.dataset.sk));
+  /* 最大レベル未入力のうちは育成スライダーを開かせない */
+  $$('#statBox .st').forEach(el=>el.onclick=()=>{
+    if(!lvSet()){toast('先に「2. 選手情報」の最大レベルを入力してください');return;}
+    openFocus(el.dataset.sk);
+  });
   bindEditor();
   $('#ovrNum').textContent=overall(final,CUR.pos);
   updateTPBar();
@@ -1160,7 +1283,14 @@ function editorHtml(cat,final){
   const n=CUR.tp[cat[0]]||0, left=tpMax()-tpUsed();
   return `<div class="ed">
     <div class="hd"><span>「<b>${esc(cat[1])}</b>」を育成</span><span class="muted">残 ${left}pt</span></div>
-    <input type="range" min="0" max="${MAXUP}" step="1" value="${n}" id="edRange">
+    <div class="edsl">
+      <input type="range" min="0" max="${MAXUP}" step="1" value="${n}" id="edRange">
+      <span class="edval"><i class="edlb">振った数</i>
+        <span class="edvv"><input type="number" id="edVal" min="0" max="${MAXUP}" step="1" value="${n}"
+          inputmode="numeric" aria-label="振った数"><i>/ ${MAXUP}</i></span></span>
+    </div>
+    <div class="edticks" id="edTicks">${Array.from({length:MAXUP+1},(_,i)=>
+      `<span class="${i&&i<=n?'on':''}${i%4===0?' m':''}">${i%4===0?i:''}</span>`).join('')}</div>
     <div class="hd" style="margin:2px 0 0"><span class="muted">上昇量 <b id="edUp">+${n}</b>／消費 <b id="edCost">${COSTTBL[n]}</b>pt</span>
       <span class="muted">次の+1に <b id="edNext">${stepCost(n)}</b>pt</span></div>
     <div class="mem" id="edMem">${cat[2].map(k=>`<span>${esc(SNAME[k])} <b data-ev="${k}" style="color:${vColorHex(final[k])}">${final[k]}</b></span>`).join('')}</div>
@@ -1168,18 +1298,30 @@ function editorHtml(cat,final){
 }
 function bindEditor(){
   const r=$('#edRange'); if(!r)return;
-  const cat=TCAT.find(c=>c[0]===FOCUS);
-  r.addEventListener('pointerdown',()=>{PREV=structuredClone(CUR.tp);});
-  r.addEventListener('input',()=>{
+  const cat=TCAT.find(c=>c[0]===FOCUS), inp=$('#edVal');
+  /* スライダーと数値入力のどちらからでも同じ処理を通す */
+  const apply=(raw,fromInput)=>{
     const max=tpMax(), other=tpUsed()-COSTTBL[CUR.tp[FOCUS]];
-    let v=+r.value; while(v>0&&other+COSTTBL[v]>max)v--;
-    if(v!==+r.value)r.value=v;
+    let v=clamp(Math.round(+raw||0),0,MAXUP);
+    while(v>0&&other+COSTTBL[v]>max)v--;
     CUR.tp[FOCUS]=v;
+    r.value=v; if(inp&&!fromInput)inp.value=v;
     $('#edUp').textContent='+'+v; $('#edCost').textContent=COSTTBL[v]; $('#edNext').textContent=stepCost(v);
+    $$('#edTicks span').forEach((el,i)=>el.classList.toggle('on',!!i&&i<=v));
     const f=finalStats().final;
     cat[2].forEach(k=>{const el=$(`[data-ev="${k}"]`);if(el){el.textContent=f[k];el.style.color=vColorHex(f[k]);}});
     paintStats(f); updateTPBar();
-  });
+    return v;
+  };
+  r.addEventListener('pointerdown',()=>{PREV=structuredClone(CUR.tp);});
+  r.addEventListener('input',()=>apply(r.value,false));
+  if(inp){
+    inp.addEventListener('focus',()=>{PREV=structuredClone(CUR.tp);});
+    /* 入力途中で値を書き戻すと打ちにくいので、確定時だけ整える */
+    inp.addEventListener('input',()=>{if(inp.value!=='')apply(inp.value,true);});
+    inp.addEventListener('change',()=>{inp.value=apply(inp.value,false);});
+    inp.addEventListener('blur',()=>{inp.value=CUR.tp[FOCUS]||0;});
+  }
 }
 function openFocus(k){
   const cats=STAT2CAT[k]||[];
@@ -1236,11 +1378,16 @@ function renderRadar(f){
   [.25,.5,.75,1].forEach(s=>g+=`<polygon points="${axes.map((_,i)=>pt(i,R*s).join(',')).join(' ')}" fill="none" stroke="#2a3140" stroke-width="1"/>`);
   axes.forEach((_,i)=>{const[x,y]=pt(i,R);g+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#2a3140" stroke-width="1"/>`;});
   g+=`<polygon points="${axes.map((a,i)=>pt(i,R*clamp(a[1],0,MX)/MX).join(',')).join(' ')}" fill="rgba(255,46,120,.22)" stroke="#ff2e78" stroke-width="2"/>`;
+  /* ラベルと数値は同じ x に上下2段で置く（斜め方向にずらすと文字が重なるため） */
   axes.forEach((a,i)=>{
-    const[x,y]=pt(i,R+17);
-    g+=`<text x="${x}" y="${y}" fill="#96a1b5" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">${esc(a[0])}</text>`;
-    const[x2,y2]=pt(i,R+17+11);
-    g+=`<text x="${x2}" y="${y2}" fill="${vColorHex(a[1])}" font-size="10" font-weight="800" text-anchor="middle" dominant-baseline="middle">${Math.round(a[1])}</text>`;
+    const[x,y0]=pt(i,R+18);
+    const top=y0<cy-1, bottom=y0>cy+1;
+    const y=y0+(top?-4:bottom?4:0);
+    /* 上側は「数値→ラベル」、それ以外は「ラベル→数値」の順に並べる */
+    const ly=top?y+6:y-5, vy=top?y-6:y+7;
+    const cx2=clamp(x,20,220);
+    g+=`<text x="${cx2}" y="${ly}" fill="#96a1b5" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">${esc(a[0])}</text>`;
+    g+=`<text x="${cx2}" y="${vy}" fill="${vColorHex(a[1])}" font-size="11" font-weight="800" text-anchor="middle" dominant-baseline="middle">${Math.round(a[1])}</text>`;
   });
   $('#radar').innerHTML=g;
 }
@@ -1252,7 +1399,7 @@ function syncFromForm(){
   CUR.name=$('#f_name').value; CUR.style=$('#f_style').value;
   CUR.height=$('#f_h').value; CUR.weight=$('#f_w').value; CUR.foot=$('#f_foot').value;
   CUR.wff=$('#f_wff').value; CUR.wfa=$('#f_wfa').value; CUR.cond=$('#f_cond').value; CUR.inj=$('#f_inj').value;
-  CUR.maxLv=clamp(+$('#f_lv').value||1,1,60);
+  CUR.maxLv=clamp(+$('#f_lv').value||0,0,60);
   const m=mgrOf(CUR); m.name=$('#g_name').value; m.apt=+$('#g_apt').value||0;
   CUR.mgr=m;
   let guard=0;
@@ -1267,7 +1414,7 @@ function syncToForm(){
   $('#f_h').value=CUR.height; $('#f_w').value=CUR.weight; fillSel($('#f_foot'),['右足','左足'],CUR.foot);
   fillSel($('#f_wff'),LEVEL4,CUR.wff); fillSel($('#f_wfa'),LEVEL4,CUR.wfa);
   fillSel($('#f_cond'),COND4,CUR.cond); fillSel($('#f_inj'),INJ3,CUR.inj);
-  $('#f_lv').value=CUR.maxLv;
+  $('#f_lv').value=CUR.maxLv||'';
 }
 function renderAll(){syncToForm();renderPitch();renderBoosters();renderMgr();renderSkillPick();renderBaseEdit();renderStats();}
 </script>
@@ -1285,7 +1432,8 @@ function savePlayer(){
 }
 function renderLib(){
   const L=DB.players;
-  if(!L.length){$('#libList').innerHTML='<div class="empty">まだ保存された育成はありません。</div>';return;}
+  if(!L.length){$('#libList').innerHTML='<div class="empty">まだ保存された育成はありません。</div>';
+    $('#cmpCard').style.display='none'; return;}
   $('#libList').innerHTML=`<div class="scroll"><table><thead><tr>
     <th></th><th>選手名</th><th>ポジ</th><th>プレースタイル</th><th class="num">総合</th><th class="num">Lv</th><th class="num">TP</th><th>ブースター</th><th>監督適性</th><th>スキル</th><th></th>
   </tr></thead><tbody>`+L.map(p=>`<tr>
@@ -1303,48 +1451,113 @@ function renderLib(){
     FOCUS=null;LASTSTAT=null; renderAll(); go('sim'); toast('読み込みました');
   });
   $$('#libList [data-del]').forEach(b=>b.onclick=()=>{DB.players=DB.players.filter(x=>x.id!==b.dataset.del);save();renderLib();});
+  /* チェックした瞬間に下へ表示。2人目からは自動で比較に切り替わる */
   $$('#libList .cmpck').forEach(c=>c.onchange=()=>{
     if($$('#libList .cmpck:checked').length>4){c.checked=false;toast('比較は最大4人までです');}
+    compare({quiet:true});
   });
+  compare({quiet:true,noScroll:true});
 }
-function compare(){
+/* チェックを全部外して比較パネルを閉じる */
+function clearCompare(){
+  $$('#libList .cmpck').forEach(c=>c.checked=false);
+  $('#cmpCard').style.display='none';
+  $('#cmpBody').innerHTML='';
+}
+/* 足のマーク。利き足は塗りつぶし、逆足は薄い点線 */
+function footMark(side,on){
+  const f=on?'currentColor':'none';
+  const st=on?'':' stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.2 1.8"';
+  return `<svg class="footic${on?' on':''}" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"
+    style="${side==='L'?'transform:scaleX(-1)':''}"><g fill="${f}"${st}>
+    <ellipse cx="12.4" cy="15" rx="5" ry="7.1"/><circle cx="6.5" cy="6.6" r="1.6"/>
+    <circle cx="10.1" cy="4.9" r="1.75"/><circle cx="13.9" cy="4.7" r="1.65"/><circle cx="17.1" cy="6" r="1.45"/>
+  </g></svg>`;
+}
+/* 左足を左・右足を右に並べる */
+const footCell=p=>{const R=(p.foot||'右足')==='右足';
+  return `<span class="footwrap"><span class="footbox${R?'':' on'}">${footMark('L',!R)}<i>左</i></span>`+
+         `<span class="footbox${R?' on':''}">${footMark('R',R)}<i>右</i></span></span>`;};
+/* 選手情報の行（プレースタイル・利き足・コンディション等）。value=HTMLをそのまま入れる行 */
+const CMP_INFO=[
+  ['プレースタイル',p=>esc(p.style||'（なし）')],
+  ['利き足',footCell],
+  ['逆足 頻度',p=>esc(p.wff||'—')],
+  ['逆足 精度',p=>esc(p.wfa||'—')],
+  ['コンディションの波',p=>esc(p.cond||'—')],
+  ['怪我耐性',p=>esc(p.inj||'—')]
+];
+/* opt.quiet=チェック操作からの自動呼び出し（人数不足でも警告を出さない） */
+function compare(opt){
+  opt=opt||{};
   const ids=$$('#libList .cmpck:checked').map(c=>c.value);
-  if(ids.length<2){toast('2〜4人を選んでください');return;}
-  const ps=ids.map(i=>DB.players.find(p=>p.id===i));
+  const ps=ids.map(i=>DB.players.find(p=>p.id===i)).filter(Boolean);
+  if(!ps.length){
+    if(!opt.quiet)toast('比較したい選手にチェックを入れてください');
+    $('#cmpCard').style.display='none'; return;
+  }
+  const solo=ps.length===1;
+  /* 差異は2人を並べたときだけ意味があるので、3人以上では出さない */
+  const showDiff=ps.length===2;
   const fs=ps.map(p=>finalStats(p).final);
+  /* 色は数値のまわりの小さなボックスだけに付ける（セル全面を塗らない） */
   const cell=(k,i)=>{
     const vals=fs.map(f=>f[k]),mx=Math.max(...vals),mn=Math.min(...vals),v=vals[i];
-    const same=mx===mn;
-    const bg=same?'':v===mx?'background:rgba(61,220,132,.18)':v===mn?'background:rgba(255,91,76,.16)':'';
-    const col=same?'var(--tx2)':v===mx?'var(--ac)':v===mn?'var(--bad)':'var(--tx)';
-    return `<td class="num" style="${bg};color:${col};font-weight:800">${v}</td>`;
+    const same=solo||mx===mn;
+    const box=same?'':v===mx?' hi':v===mn?' lo':'';
+    const col=solo?vColor(v):same?'var(--tx2)':v===mx?'var(--ac)':v===mn?'var(--bad)':'var(--tx)';
+    return `<td class="num cmpv"><span class="vbox${box}" style="color:${col}">${v}</span></td>`;
   };
   /* 差異（最大値−最小値）を一番右の列に */
   const diffCell=k=>{
+    if(!showDiff)return '';
     const vals=fs.map(f=>f[k]),d=Math.max(...vals)-Math.min(...vals);
-    return `<td class="num" style="font-weight:800;color:${d===0?'var(--tx3)':d>=10?'var(--gold)':'var(--tx2)'}">${d===0?'—':d}</td>`;
+    return `<td class="num cmpd" style="color:${d===0?'var(--tx3)':d>=10?'var(--gold)':'var(--tx2)'}">${d===0?'—':d}</td>`;
   };
-  const skRow=(get,label)=>`<tr><td><b>${label}</b></td>`+ps.map(p=>
-    `<td style="white-space:normal;max-width:190px">${(get(p)||[]).map(s=>`<span class="pill ${SPECIAL.has(s)?'pk':'b'}" style="margin:1px">${esc(s)}</span>`).join('')||'<span class="muted">—</span>'}</td>`).join('')+`<td></td></tr>`;
-  const ovrs=ps.map(p=>p.ovr), ovrDiff=Math.max(...ovrs)-Math.min(...ovrs);
-  const COLSPAN=ps.length+2;
+  const infoRow=(label,get)=>`<tr><td class="cmph">${esc(label)}</td>`+
+    ps.map(p=>`<td class="cmpi">${get(p)}</td>`).join('')+(showDiff?'<td></td>':'')+`</tr>`;
+  const COLSPAN=ps.length+(showDiff?2:1);
+  const catRow=n=>`<tr class="cmpcat"><td colspan="${COLSPAN}">${esc(n)}</td></tr>`;
+  /* スキルは能力値と同じ形式で比較。1行＝1スキル、持っている選手にチェックを付ける */
+  /* 初期搭載・追加は区別せず1つのリストに統合する */
+  const skOwners={};
+  const has=p=>new Set([...(p.skillsBase||[]),...(p.skillsAdd||[])]);
+  const owned=ps.map(has);
+  owned.forEach(set=>set.forEach(s=>skOwners[s]=(skOwners[s]||0)+1));
+  const dupCount=Object.values(skOwners).filter(v=>v>=2).length;
+  /* かぶり（所持人数の多い順）を上に、その下は元のスキル一覧の並び順 */
+  const skOrder=Object.fromEntries(ALLSKILLS.map((s,i)=>[s,i]));
+  const skList=Object.keys(skOwners).sort((a,b)=>
+    (skOwners[b]-skOwners[a])||((skOrder[a]??999)-(skOrder[b]??999)));
+  const skBlock=!skList.length
+    ? '<div class="empty">登録されたスキルがありません。</div>'
+    : `<div class="scroll cmpwrap"><table class="cmp cmpsk2">
+       <colgroup><col class="cmpc-s"><col span="${ps.length}"></colgroup>
+       <thead><tr><th>スキル</th>${ps.map(p=>`<th class="num">${esc(p.name)}</th>`).join('')}</tr></thead><tbody>`
+      +skList.map(s=>{const d=!solo&&skOwners[s]>=2;
+        return `<tr class="${d?'skdup':''}"><td class="skn2${SPECIAL.has(s)?' sp':''}">`+
+          `${d?`<i class="skstar">⭐️</i>`:''}${esc(s)}${d?`<i class="skcnt">${skOwners[s]}人</i>`:''}</td>`+
+          owned.map(set=>`<td class="skck">${set.has(s)?'<i class="ck">✓</i>':'<i class="nock">—</i>'}</td>`).join('')+
+        `</tr>`;}).join('')
+      +`</tbody></table></div>`
+      +(solo?'':`<div class="cmpskleg">${dupCount
+        ? `<i class="skstar">⭐️</i> ＝ <b>2人以上が持っているスキル</b>（${dupCount}種）。リストの<b>上にまとめて</b>います。`
+        : 'かぶっているスキルはありません。'}</div>`);
   $('#cmpCard').style.display='';
+  $('#cmpTitle').innerHTML=solo
+    ? `能力を表示 <span class="sub">もう1人チェックすると自動で比較します</span>`
+    : `比較（${ps.length}人） <span class="sub">各項目 最高＝緑／最低＝赤${showDiff?'／右端に差異':''}</span>`;
   $('#cmpBody').innerHTML=`
-   <div class="kpis" style="margin-bottom:10px">${ps.map(p=>
-     `<div class="kpi"><b style="color:${vColor(p.ovr)}">${p.ovr}</b><span>${esc(p.name)}（${esc(p.pos)}）</span></div>`).join('')}
-     <div class="kpi"><b style="color:var(--gold)">${ovrDiff===0?'—':ovrDiff}</b><span>総合値の差</span></div></div>
-   <div class="scroll" style="max-height:640px"><table><thead><tr><th>項目</th>${ps.map(p=>`<th class="num">${esc(p.name)}</th>`).join('')}<th class="num">差異</th></tr></thead><tbody>
-   <tr><td><b>推定総合値</b></td>${ps.map(p=>`<td class="num" style="font-weight:800;color:${vColor(p.ovr)}">${p.ovr}</td>`).join('')}
-     <td class="num" style="font-weight:800;color:${ovrDiff===0?'var(--tx3)':'var(--gold)'}">${ovrDiff===0?'—':ovrDiff}</td></tr>
-   <tr><td>プレースタイル</td>${ps.map(p=>`<td>${esc(p.style)}</td>`).join('')}<td></td></tr>
-   <tr><td>利き足 / 逆足 頻度・精度</td>${ps.map(p=>`<td>${esc(p.foot)} / ${esc(p.wff)}・${esc(p.wfa)}</td>`).join('')}<td></td></tr>
-   ${COLS.map(([c,n])=>`<tr><td colspan="${COLSPAN}" style="background:var(--bg2);color:var(--tx3);font-size:11px;letter-spacing:.08em">${n}</td></tr>`+
-     STATS.filter(s=>s[2]===c).map(([k,nm])=>`<tr><td>${esc(nm)}</td>${ps.map((_,i)=>cell(k,i)).join('')}${diffCell(k)}</tr>`).join('')).join('')}
-   <tr><td colspan="${COLSPAN}" style="background:var(--bg2);color:var(--tx3);font-size:11px;letter-spacing:.08em">スキル</td></tr>
-   ${skRow(p=>p.skillsBase,'初期搭載スキル')}
-   ${skRow(p=>p.skillsAdd,'追加スキル')}
-   </tbody></table></div>`;
-  $('#cmpCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+   <div class="scroll cmpwrap"><table class="cmp">
+   <colgroup><col class="cmpc-h"><col class="cmpc-v" span="${ps.length}">${showDiff?'<col class="cmpc-d">':''}</colgroup>
+   <thead><tr><th>項目</th>${ps.map(p=>`<th class="num">${esc(p.name)}</th>`).join('')}${showDiff?'<th class="num">差異</th>':''}</tr></thead><tbody>
+   ${catRow('選手情報')}
+   ${CMP_INFO.map(([l,g])=>infoRow(l,g)).join('')}
+   ${COLS.map(([c,n])=>catRow(n)+
+     STATS.filter(s=>s[2]===c).map(([k,nm])=>`<tr><td class="cmph">${esc(nm)}</td>${ps.map((_,i)=>cell(k,i)).join('')}${diffCell(k)}</tr>`).join('')).join('')}
+   </tbody></table></div>
+   <div class="cmpsec">スキル</div>${skBlock}`;
+  if(!opt.noScroll)$('#cmpCard').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 /* =====================================================================
@@ -1533,14 +1746,32 @@ function wrap(x,text,l,t,maxw,lh){
 /* =====================================================================
    戦績管理
    ===================================================================== */
+/* 最初のフェーズの既定の開始日 */
+const PHASE_START_DEF='2026-08-13';
+/* 試合記録の日付の既定 */
+const MATCH_DATE_DEF='2026-08-13';
+/* 開始Divisionごとの開始レートの目安 */
+const DIV_RATE={'Div.1':1800,'Div.2':1500,'Div.3':1200};
+const DIV_RATES=Object.values(DIV_RATE).map(String);
+/* 指定日にいちばん近い木曜日（同じ日数なら後ろの木曜） */
+function nearThursday(d){
+  const w=new Date(d+'T00:00:00Z').getUTCDay();   /* 0=日 … 4=木 */
+  const fwd=(4-w+7)%7;                            /* 次の木曜まで */
+  const back=fwd===0?0:fwd-7;                     /* 前の木曜まで（負） */
+  return -back<fwd?addDays(d,back):addDays(d,fwd);
+}
+/* 終了日のおすすめ：開始の28日後に最も近い木曜日（自動では入れず候補として提示する） */
+const phaseEndDefault=s=>nearThursday(addDays(s||PHASE_START_DEF,28));
 function newPhase(name,start,end){
   const last=DB.phases[DB.phases.length-1];
-  const p={id:uid(),name:name||('第'+(DB.phases.length+1)+'フェーズ'),start:start||today(),end:end||addDays(start||today(),13),
+  const s=start||PHASE_START_DEF;
+  /* 終了日はユーザーが決めるので空のままにする */
+  const p={id:uid(),name:name||('第'+(DB.phases.length+1)+'フェーズ'),start:s,end:end||'',
     div:last?last.div:'未設定', rate:last?String(endRate(last)||''):''};
   DB.phases.push(p);DB.curPhase=p.id;save();return p;
 }
 function ensurePhase(){
-  if(!DB.phases.length)newPhase('第1フェーズ',today(),addDays(today(),13));
+  if(!DB.phases.length)newPhase('第1フェーズ',PHASE_START_DEF,'');
   if(!DB.curPhase||!DB.phases.find(p=>p.id===DB.curPhase))DB.curPhase=DB.phases[DB.phases.length-1].id;
   let guard=0;
   while(guard++<60){
@@ -1569,10 +1800,27 @@ function renderPhases(){
   $('#ph_n').value=ph.name; $('#ph_s').value=ph.start||''; $('#ph_e').value=ph.end||'';
   fillSel($('#ph_div'),DIVS,ph.div||'未設定');
   $('#ph_rate').value=ph.rate??'';
+  /* 終了日の候補（開始の28日後にいちばん近い木曜）をピンクで提示 */
+  const sug=phaseEndDefault(ph.start||PHASE_START_DEF);
+  $('#phHint').innerHTML=ph.end===sug
+    ? `<span class="muted">終了日はおすすめどおりです（開始の28日後に最も近い木曜）。</span>`
+    : `<span class="muted">終了日のおすすめ：</span> <button class="phhint" id="phUseHint" type="button">${esc(sug)}（木）</button>`
+      +` <span class="muted">開始の28日後に最も近い木曜。押すと入ります。</span>`;
+  const hb=$('#phUseHint');
+  if(hb)hb.onclick=()=>{$('#ph_e').value=sug;ph.end=sug;save();renderRec();toast('終了日を設定しました');};
+  /* 終了日が未設定のうちは試合を記録できない */
+  const locked=!ph.end;
+  $('#recLock').innerHTML=locked
+    ? `<div class="note" style="border-color:var(--bad);background:rgba(255,91,76,.08)">
+        <b style="color:var(--bad)">フェーズの終了日を設定してください。</b><br>
+        <span class="muted">上の「フェーズ」で終了日を入れて「期間・開始条件を確定」を押すと、試合を記録できるようになります。</span></div>`
+    : '';
+  $('#mAdd').disabled=locked;
   const rest=ph.end?dayDiff(today(),ph.end):null;
   const er=endRate(ph), base=Number(ph.rate);
   const diff=er!==null?er-base:null;
   $('#phMeta').innerHTML=`記録 ${curMatches().length}件`+
+    (locked?'／<span style="color:var(--bad)">終了日が未設定です</span>':'')+
     (rest===null?'':rest>=0?`／残り <b>${rest}日</b>（${esc(ph.end)}まで）`:`／<span style="color:var(--bad)">期間終了</span>`)+
     `<br>開始 <b>${esc(ph.div||'未設定')}</b>`+
     (er===null?'／開始レート未設定'
@@ -1599,9 +1847,20 @@ function aggTable(el,rows,label){
       <td><div class="wl"><i class="w" style="width:${r.w/t*100}%"></i><i class="d" style="width:${r.d/t*100}%"></i><i class="l" style="width:${r.l/t*100}%"></i></div></td></tr>`;
   }).join('')+'</tbody></table></div>';
 }
+/* 成績サマリー・試合ログの表示範囲 */
+let sumScope='phase', logScope='phase';
+const scopedMatches=()=>sumScope==='all'?DB.matches.slice():curMatches();
 function renderRec(){
   renderPhases();
-  const ms=curMatches();
+  $('#sumPhase').classList.toggle('on',sumScope==='phase');
+  $('#sumAll').classList.toggle('on',sumScope==='all');
+  $('#logPhase').classList.toggle('on',logScope==='phase');
+  $('#logAll').classList.toggle('on',logScope==='all');
+  const ms=scopedMatches();
+  const allMode=sumScope==='all';
+  $('#recScopeSub').textContent=allMode
+    ? `全期間（${DB.phases.length}フェーズ合計）`
+    : `${curPhase()?.name||''}のみ`;
   const w=ms.filter(m=>res(m)==='W').length,d=ms.filter(m=>res(m)==='D').length,l=ms.filter(m=>res(m)==='L').length;
   const gf=ms.reduce((s,m)=>s+m.gf,0),ga=ms.reduce((s,m)=>s+m.ga,0),rt=ms.reduce((s,m)=>s+(+m.rt||0),0);
   const n=ms.length||1;
@@ -1612,25 +1871,44 @@ function renderRec(){
     <div class="kpi"><b>${(gf/n).toFixed(2)}</b><span>平均得点</span></div>
     <div class="kpi"><b>${(ga/n).toFixed(2)}</b><span>平均失点</span></div>
     <div class="kpi"><b style="color:${rt>=0?'var(--ac)':'var(--bad)'}">${rt>0?'+':''}${rt}</b><span>レート増減</span></div>`+
-    (()=>{const ph=curPhase(),er=endRate(ph);
-      return `<div class="kpi"><b>${esc(ph&&ph.div||'—')}</b><span>開始Division</span></div>`+
-        `<div class="kpi"><b>${er===null?'—':er}</b><span>現在レート</span></div>`;})();
+    (allMode
+      ? `<div class="kpi"><b>${DB.phases.length}</b><span>フェーズ数</span></div>`
+      : (()=>{const ph=curPhase(),er=endRate(ph);
+          return `<div class="kpi"><b>${esc(ph&&ph.div||'—')}</b><span>開始Division</span></div>`+
+            `<div class="kpi"><b>${er===null?'—':er}</b><span>現在レート</span></div>`;})());
   $('#recWL').innerHTML=`<i class="w" style="width:${w/n*100}%"></i><i class="d" style="width:${d/n*100}%"></i><i class="l" style="width:${l/n*100}%"></i>`;
   aggTable('#aggMyStyle',agg(ms,m=>m.ms),'自分のスタイル');
   aggTable('#aggOppForm',agg(ms,m=>m.of),'相手フォメ');
   aggTable('#aggOppStyle',agg(ms,m=>m.os),'相手スタイル');
   aggTable('#aggMyForm',agg(ms,m=>m.mf),'自分のフォメ');
-  renderRate(ms);
+  renderRate(curMatches());
+  renderLog();
+}
+/* 試合ログ：フェーズ単位／全フェーズ（フェーズごとに見出しを挟む） */
+function renderLog(){
   const t=$('#mTable');
-  if(!ms.length){t.innerHTML='<tbody><tr><td><div class="empty">試合記録がありません。</div></td></tr></tbody>';return;}
-  t.innerHTML=`<thead><tr><th>日付</th><th>結果</th><th class="num">スコア</th><th>自スタイル/フォメ</th><th>相手スタイル/フォメ</th><th>Div</th><th class="num">レート</th><th>得点者</th><th>メモ</th><th></th></tr></thead><tbody>`
-   +ms.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(m=>{
-     const r=res(m);
-     return `<tr><td>${esc(m.date||'')}</td><td><span class="pill ${r==='W'?'g':r==='D'?'':'r'}">${r}</span></td>
+  const groups=logScope==='all'
+    ? DB.phases.slice().reverse().map(p=>[p,DB.matches.filter(m=>m.phaseId===p.id)]).filter(g=>g[1].length)
+    : [[curPhase(),curMatches()]].filter(g=>g[1].length);
+  if(!groups.length){
+    t.innerHTML=`<tbody><tr><td><div class="empty">${logScope==='all'?'試合記録がありません。':'このフェーズの試合記録がありません。'}</div></td></tr></tbody>`;
+    return;
+  }
+  const row=m=>{const r=res(m);
+    return `<tr><td>${esc(m.date||'')}</td><td><span class="pill ${r==='W'?'g':r==='D'?'':'r'}">${r}</span></td>
       <td class="num"><b>${m.gf} - ${m.ga}</b></td><td>${esc(m.ms)} / ${esc(m.mf)}</td><td>${esc(m.os)} / ${esc(m.of)}</td>
       <td>${esc(m.div||'')}</td><td class="num" style="color:${(+m.rt||0)>=0?'var(--ac)':'var(--bad)'}">${m.rt?((+m.rt>0?'+':'')+m.rt):''}</td>
       <td>${esc(m.sc||'')}</td><td style="white-space:normal;max-width:220px">${esc(m.memo||'')}</td>
-      <td><button class="btn s d" data-mdel="${m.id}">削除</button></td></tr>`;
+      <td><button class="btn s d" data-mdel="${m.id}">削除</button></td></tr>`;};
+  t.innerHTML=`<thead><tr><th>日付</th><th>結果</th><th class="num">スコア</th><th>自スタイル/フォメ</th><th>相手スタイル/フォメ</th><th>相手Div</th><th class="num">レート</th><th>得点者</th><th>メモ</th><th></th></tr></thead><tbody>`
+   +groups.map(([p,list])=>{
+      const s=list.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+      const wn=s.filter(m=>res(m)==='W').length, rt=s.reduce((a,m)=>a+(+m.rt||0),0);
+      const hd=logScope==='all'
+        ? `<tr class="loghd"><td colspan="10">${esc(p?.name||'—')}（${esc(p?.start||'')}〜${esc(p?.end||'未設定')}）　`+
+          `${s.length}試合／勝率 ${(wn/s.length*100).toFixed(0)}%／レート ${rt>0?'+':''}${rt}</td></tr>`
+        : '';
+      return hd+s.map(row).join('');
    }).join('')+'</tbody>';
   $$('#mTable [data-mdel]').forEach(b=>b.onclick=()=>{DB.matches=DB.matches.filter(x=>x.id!==b.dataset.mdel);save();renderRec();});
 }
@@ -1655,13 +1933,32 @@ function renderRate(ms){
                  :`レート ${base} → ${lastV}（${dlt>0?'+':''}${dlt}）`)+`</text>`;
   svg.innerHTML=g;
 }
+/* 自分のチームスタイル・フォメの「固定」。固定中は記録後もその値のまま */
+function applyPins(){
+  const p=DB.pin||(DB.pin={ms:'',mf:''});
+  [['ms','#m_ms','#pinMs'],['mf','#m_mf','#pinMf']].forEach(([k,sel,btn])=>{
+    const on=!!p[k];
+    if(on&&$(sel))$(sel).value=p[k];
+    if($(btn))$(btn).classList.toggle('on',on);
+    if($(btn))$(btn).textContent=on?'固定中':'固定';
+  });
+}
+function togglePin(k,sel){
+  const p=DB.pin||(DB.pin={ms:'',mf:''});
+  p[k]=p[k]?'':$(sel).value;
+  save();applyPins();
+  toast(p[k]?`「${p[k]}」を固定しました`:'固定を解除しました');
+}
 function addMatch(){
   ensurePhase();
-  DB.matches.push({id:uid(),phaseId:DB.curPhase,date:$('#m_date').value||today(),
+  const ph=curPhase();
+  if(!ph||!ph.end){toast('先にフェーズの終了日を設定してください');return;}
+  DB.matches.push({id:uid(),phaseId:DB.curPhase,date:$('#m_date').value||MATCH_DATE_DEF,
     gf:+$('#m_gf').value||0,ga:+$('#m_ga').value||0,ms:$('#m_ms').value,mf:$('#m_mf').value,
     os:$('#m_os').value,of:$('#m_of').value,div:$('#m_div').value,rt:$('#m_rt').value,
     sc:$('#m_sc').value,memo:$('#m_memo').value});
   save();$('#m_gf').value=0;$('#m_ga').value=0;$('#m_rt').value='';$('#m_sc').value='';$('#m_memo').value='';
+  applyPins();
   renderRec();toast('記録しました');
 }
 function exportCsv(){
@@ -1679,7 +1976,7 @@ function exportCsv(){
 /* =====================================================================
    スキル在庫 ※特殊スキルは対象外
    ===================================================================== */
-let sFilter='all';
+let sFilter='all', sQuery='', sCatFilter='';
 function renderSkl(){
   const st=DB.stock, stock=st.filter(s=>s.status==='stock');
   $('#sklKpi').innerHTML=`
@@ -1695,37 +1992,75 @@ function renderSkl(){
       DB.wish.map(w=>`<span class="chip ${have.has(w)?'on':''}">${have.has(w)?'✓ 在庫あり':'— 未所持'}：${esc(w)}</span>`).join('');
   $('#wishBox').innerHTML=Object.entries(SKILLS).map(([c,a])=>{
     const arr=a.filter(s=>!SPECIAL.has(s)); if(!arr.length)return '';
-    return `<div class="muted" style="margin:6px 0 3px">${esc(c)}</div>`+
+    return `<div style="margin:8px 0 3px;font-size:11.5px;font-weight:800;letter-spacing:.06em;color:rgb(${catRgb(c)})">${esc(c)}</div>`+
       arr.map(s=>`<span class="chip${DB.wish.includes(s)?' on':''}" data-wi="${esc(s)}">${esc(s)}</span>`).join('');
   }).join('');
   $$('#wishBox .chip').forEach(c=>c.onclick=()=>{tog(DB.wish,c.dataset.wi);save();renderSkl();});
-  const list=st.filter(s=>sFilter==='all'||s.status===sFilter).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  /* 系統でしぼるプルダウン（初回だけ組み立てる） */
+  const cs=$('#sCat');
+  if(cs&&!cs.innerHTML)cs.innerHTML='<option value="">すべての系統</option>'+
+    Object.keys(SKILLS).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(cs&&cs.value!==sCatFilter)cs.value=sCatFilter;
+  /* 入力中にカーソルが飛ばないよう、値が違うときだけ書き戻す */
+  const sq=$('#sSearch'); if(sq&&sq.value!==sQuery)sq.value=sQuery;
+  /* 状態フィルタ → 系統フィルタ → キーワード検索の順にしぼる */
+  const byStatus=st.filter(s=>sFilter==='all'||s.status===sFilter);
+  const byCat=byStatus.filter(s=>!sCatFilter||(SKILL_CAT[s.skill]||'その他')===sCatFilter);
+  const q=sQuery.trim().toLowerCase();
+  const list=byCat.filter(s=>!q||[s.skill,SKILL_CAT[s.skill]||'',s.target||'',s.memo||'']
+      .some(v=>String(v).toLowerCase().includes(q)))
+    .slice().sort((a,b)=>((b.status==='used'?b.usedAt||b.date:b.date)||'').localeCompare((a.status==='used'?a.usedAt||a.date:a.date)||''));
+  /* 継承済みは「取得日」ではなく「継承日」を出す */
+  const showGet=sFilter!=='used', showUse=sFilter!=='stock';
+  $('#sHit').textContent=(q||sCatFilter)
+    ? `${list.length} 件ヒット（全 ${st.length} 件中）`
+    : `${list.length} 件を表示`;
   const t=$('#sTable');
-  if(!list.length)t.innerHTML='<tbody><tr><td><div class="empty">該当なし。スキル追加で出たスキルを在庫に登録していきましょう。</div></td></tr></tbody>';
-  else t.innerHTML=`<thead><tr><th>スキル</th><th>系統</th><th>取得日</th><th>状態</th><th>継承先</th><th>メモ</th><th></th></tr></thead><tbody>`
-   +list.map(s=>`<tr>
-     <td><b>${esc(s.skill)}</b>${DB.wish.includes(s.skill)?' <span class="pill y">WISH</span>':''}</td>
-     <td><span class="pill b">${esc(SKILL_CAT[s.skill]||'')}</span></td>
-     <td>${esc(s.date||'')}</td>
-     <td><span class="pill ${s.status==='stock'?'g':''}">${s.status==='stock'?'在庫':'継承済'}</span></td>
+  if(!list.length)t.innerHTML='<tbody><tr><td><div class="empty">該当なし。検索条件を変えるか、スキル追加で出たスキルを在庫に登録していきましょう。</div></td></tr></tbody>';
+  else t.innerHTML=`<thead><tr><th>スキル</th><th>系統</th>${showGet?'<th>取得日</th>':''}${showUse?'<th>継承日</th>':''}<th>状態</th><th>継承先</th><th>メモ</th><th></th></tr></thead><tbody>`
+   +list.map(s=>{const c=SKILL_CAT[s.skill]||'その他';return `<tr>
+     <td><b class="${s.status==='used'?'skused':''}">${esc(s.skill)}</b>${s.status==='stock'&&DB.wish.includes(s.skill)?' <span class="pill y">WISH</span>':''}</td>
+     <td><span class="pill cat ${catCls(c)}">${esc(c)}</span></td>
+     ${showGet?`<td>${s.status==='used'?'<span class="muted">—</span>':esc(s.date||'')}</td>`:''}
+     ${showUse?`<td>${s.status==='used'?(esc(s.usedAt||'')||'<span class="muted">未設定</span>'):'<span class="muted">—</span>'}</td>`:''}
+     <td><span class="pill ${s.status==='stock'?'g':'b'}">${s.status==='stock'?'在庫':'継承済み'}</span></td>
      <td>${esc(s.target||'')}</td><td style="white-space:normal;max-width:200px">${esc(s.memo||'')}</td>
      <td>${s.status==='stock'?`<button class="btn s" data-use="${s.id}">継承</button> `:''}<button class="btn s d" data-sdel="${s.id}">削除</button></td>
-   </tr>`).join('')+'</tbody>';
-  $$('#sTable [data-use]').forEach(b=>b.onclick=()=>{
-    const s=DB.stock.find(x=>x.id===b.dataset.use);
-    const to=prompt('どの選手に継承しましたか？（選手名）','');
-    if(to===null)return; s.status='used';s.target=to;s.usedAt=today();save();renderSkl();
-    toast('継承済みにしました（継承元の選手は消滅）');
-  });
+   </tr>`}).join('')+'</tbody>';
+  $$('#sTable [data-use]').forEach(b=>b.onclick=()=>openInheritDlg(b.dataset.use));
   $$('#sTable [data-sdel]').forEach(b=>b.onclick=()=>{DB.stock=DB.stock.filter(x=>x.id!==b.dataset.sdel);save();renderSkl();});
   const cat={};Object.keys(SKILLS).forEach(c=>cat[c]=0);
   stock.forEach(s=>cat[SKILL_CAT[s.skill]||'その他']=(cat[SKILL_CAT[s.skill]||'その他']||0)+1);
   const mx=Math.max(1,...Object.values(cat));
   $('#sByCat').innerHTML=Object.entries(cat).map(([c,v])=>`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-      <span style="width:88px;font-size:12px;color:var(--tx2)">${esc(c)}</span>
-      <span style="flex:1"><span class="tpbar" style="display:block"><span style="display:block;height:100%;width:${v/mx*100}%;background:linear-gradient(90deg,var(--ac),#8affc2)"></span></span></span>
+      <span style="width:96px;font-size:12px;font-weight:700;color:rgb(${catRgb(c)})">${esc(c)}</span>
+      <span style="flex:1"><span class="tpbar" style="display:block"><span style="display:block;height:100%;width:${v/mx*100}%;background:linear-gradient(90deg,rgba(${catRgb(c)},.55),rgb(${catRgb(c)}))"></span></span></span>
       <b style="width:28px;text-align:right">${v}</b></div>`).join('');
+}
+/* 継承の記録：ブラウザ標準の prompt ではなくアプリ内のダイアログで受け取る */
+function openInheritDlg(id){
+  const s=DB.stock.find(x=>x.id===id); if(!s)return;
+  const names=[...new Set([...DB.players.map(p=>p.name),...DB.stock.map(x=>x.target)].filter(Boolean))];
+  $('#dlgT').textContent='スキルを継承した記録';
+  $('#dlgB').innerHTML=`
+    <div class="note g" style="margin-top:0"><b>${esc(s.skill)}</b> を継承した選手と日付を記録します。<br>
+      <span class="muted">記録すると状態が「継承済み」に変わります（ゲーム内では継承元の選手は消滅します）。</span></div>
+    <label class="f"><span>継承した選手名</span>
+      <input type="text" id="ihName" list="ihNames" placeholder="例：J.ベリンガム【BT】" autocomplete="off"></label>
+    <datalist id="ihNames">${names.map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist>
+    <label class="f"><span>継承日（任意・空でも登録できます）</span>
+      <input type="date" id="ihDate"></label>
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn p" id="ihOk">継承済みにする</button>
+      <button class="btn s" id="ihCancel">やめる</button></div>`;
+  $('#ihDate').value=today();
+  $('#dlg').showModal();
+  $('#ihCancel').onclick=()=>$('#dlg').close();
+  $('#ihOk').onclick=()=>{
+    s.status='used'; s.target=$('#ihName').value.trim(); s.usedAt=$('#ihDate').value||'';
+    save(); $('#dlg').close(); renderSkl(); toast('継承済みにしました');
+  };
 }
 function addStock(){
   const sk=$('#s_skill').value;
@@ -1760,11 +2095,11 @@ $('#helpBody').innerHTML=`
 <div class="sec" id="s0">
   <h4><i>0</i>はじめかた<em>3ステップ</em></h4>
   <div class="steps">
-    <div><b><em>1</em>初期能力値設定</b><span>まず<b>登録ポジション</b>を選ぶと、そのポジションの Lv.1 初期能力値が自動でセットされます。実データがあれば「スライダー / 手入力で調整」から上書き。</span></div>
-    <div><b><em>2</em>選手情報・ポジション設定</b><span>名前やプレースタイル、逆足、最大レベルを入力。ピッチのマスをタップして適性ポジションを設定します。</span></div>
+    <div><b><em>1</em>初期能力値設定</b><span>まず育成したい選手の<b>登録ポジション（カードの左上）</b>を選ぶと、そのポジションの Lv.1 初期能力値が自動でセットされます（既定は CF）。実データがあれば「スライダー / 手入力で調整」から上書き。</span></div>
+    <div><b><em>2</em>選手情報・ポジション設定</b><span>名前やプレースタイル、逆足を入力。<b>最大レベルは必須</b>で、入力するまで育成スライダーは開きません。ピッチのマスをタップして適性ポジションを設定します。</span></div>
     <div><b><em>3</em>ブースター・監督・スキル</b><span>ブースター（最大2つ）、監督の適性数値とバフ、初期搭載スキル（最大10）／追加スキル（最大5）を設定。</span></div>
     <div><b><em>4</em>能力名をタップして育成</b><span>そのカテゴリのスライダーがその場で開きます。残りタレントポイントを見ながら配分。「おすすめ自動振り」で下地を作るのも◎。</span></div>
-    <div><b><em>5</em>保存・シェア</b><span>保存すると「保存・比較」タブで最大4人まで並べて比較できます。PNGで書き出してSNSに投稿できます。</span></div>
+    <div><b><em>5</em>保存・シェア</b><span>保存すると「保存・比較」タブに並びます。チェックを1つ入れるとその選手の能力が下に出て、2人目からは自動で比較表に切り替わります（最大4人・差異は2人のときだけ表示）。スキルは選手ごとに1列で並び、2人以上が持っているスキルは ⭐️付きの金色でリストの上にまとまります。PNGで書き出してSNSに投稿できます。</span></div>
   </div>
   <div class="note g">データはすべて<b>この端末のブラウザ内（localStorage）</b>にだけ保存されます。右上の「データ」からJSONで書き出し／読み込みができます。</div>
 </div>
@@ -1876,8 +2211,11 @@ $('#helpBody').innerHTML=`
   <div class="steps" style="margin-top:10px">
     <div><b><em>1</em>ストックする</b><span>0GPで獲得できてスキルを持たない選手（通称ロンバルジ）にスキル追加アイテムを使い、出たスキルを在庫として登録。</span></div>
     <div><b><em>2</em>照合する</b><span>ウィッシュリストに欲しいスキルを入れておくと、在庫と自動で照合されます。ダブり回数も集計。</span></div>
-    <div><b><em>3</em>継承する</b><span>付けたい選手が決まったら「特別強化」で継承。継承元の選手は消滅します。アプリでは「継承」ボタンで状態を更新。</span></div>
+    <div><b><em>3</em>継承する</b><span>付けたい選手が決まったら「特別強化」で継承。継承元の選手は消滅します。アプリでは「継承」ボタンを押し、継承した選手名と継承日（任意）を記録します。</span></div>
   </div>
+  <div class="note" style="margin-top:10px"><b>探し方</b><br>
+    在庫リストは<b>系統ごとに色分け</b>されています。検索バーには<b>スキル名・系統名（ドリブル系など）・継承先・メモ</b>が入力でき、右の「系統でしぼる」と組み合わせて絞り込めます。<br>
+    状態の切替は<b>すべて／在庫のみ／継承済み</b>。継承済みでは取得日のかわりに<b>継承日</b>が表示されます。</div>
   <div class="note g" style="margin-top:10px">在庫の対象は<b>通常スキル ${NORMALSKILLS.length}種のみ</b>。特殊スキルはスキル追加で出ないため一覧から除外しています。</div>
 </div>
 
@@ -1885,7 +2223,13 @@ $('#helpBody').innerHTML=`
 <div class="sec" id="s8">
   <h4><i>8</i>戦績管理<em>フェーズ単位</em></h4>
   <ul>
-    <li>フェーズの<b>開始日・終了日</b>に加えて、<b>開始Division</b>と<b>開始レート</b>を設定できます。</li>
+    <li>フェーズの<b>開始日・終了日</b>に加えて、<b>開始Division</b>と<b>開始レート</b>を設定できます。初回の開始日は <b>2026/08/13</b>、終了日は<b>空</b>です。</li>
+    <li>終了日の欄の下に、<b style="color:var(--pink)">開始の28日後に最も近い木曜日</b>がピンク色の候補として出ます。押すとそのまま入ります。</li>
+    <li><b>終了日が空のあいだは試合を記録できません。</b>終了日を入れて「期間・開始条件を確定」を押してください。</li>
+    <li>開始Divisionを選ぶと開始レートの目安（<b>Div.1＝1800／Div.2＝1500／Div.3＝1200</b>）が自動で入ります。手入力した値は上書きしません。</li>
+    <li>成績サマリーは<b>「このフェーズ」／「全期間」</b>で切り替えられます（「このフェーズ」は上のフェーズ選択と連動）。</li>
+    <li>自分のチームスタイル・フォメには<b>「固定」</b>ボタンがあり、固定すると記録のたびに選び直す必要がありません。</li>
+    <li>試合ログは<b>「表示中のフェーズ」／「全フェーズ（分けて表示）」</b>を切り替え可能。全フェーズではフェーズごとに見出し（試合数・勝率・レート）が入ります。</li>
     <li>期間が過ぎると<b>同じ長さの次フェーズが自動で作成</b>されます（前フェーズ終了の翌日開始）。このとき<b>Divisionと到達レートが次フェーズの開始値として引き継がれます</b>。</li>
     <li>開始レートを入れておくと、レート推移グラフが<b>実際のレート</b>（開始レート＋増減）で描かれ、サマリーにも現在レートが出ます。未入力なら従来どおり増減の累積で表示します。</li>
     <li>1試合ごとに スコア／自分と相手のチームスタイル・フォーメーション／Division／レート増減／得点者／メモ を記録。</li>
@@ -1949,21 +2293,28 @@ $('#mgrPresetOpen').onclick=openMgrPresetDlg;
 $('#btnShareTxt').onclick=()=>{syncFromForm();copy(shareText());};
 $('#btnShareImg').onclick=sharePng;
 $('#btnShareUrl').onclick=()=>copy(shareUrl());
-$('#btnCompare').onclick=compare;
-$('#btnLibClear').onclick=()=>{if(confirm('保存された育成をすべて削除します。')){DB.players=[];save();renderLib();$('#cmpCard').style.display='none';}};
+$('#btnCmpClear').onclick=clearCompare;
+/* 取り返しがつかないので2段階で確認する */
+$('#btnLibClear').onclick=()=>{
+  if(!DB.players.length){toast('保存された育成がありません');return;}
+  if(!confirm(`保存された育成 ${DB.players.length}件 をすべて削除します。`))return;
+  if(!confirm('⚠ 本当によろしいですか？\n削除した育成は元に戻せません。\n残しておきたい場合は「データ」→「JSONで書き出し」でバックアップしてください。'))return;
+  DB.players=[];save();renderLib();$('#cmpCard').style.display='none';toast('保存した育成を削除しました');
+};
 $('#phSel').onchange=()=>{DB.curPhase=$('#phSel').value;save();renderRec();};
 $('#phSave').onclick=()=>{
   const ph=curPhase(); if(!ph)return;
-  ph.name=$('#ph_n').value||ph.name; ph.start=$('#ph_s').value||ph.start; ph.end=$('#ph_e').value||ph.end;
+  ph.name=$('#ph_n').value||ph.name; ph.start=$('#ph_s').value||ph.start;
+  ph.end=$('#ph_e').value;   /* 空にすると記録がロックされる */
   ph.div=$('#ph_div').value; ph.rate=$('#ph_rate').value;
-  if(ph.end<ph.start){toast('終了日は開始日以降にしてください');return;}
+  if(ph.end&&ph.end<ph.start){toast('終了日は開始日以降にしてください');return;}
   DB.phases.sort((a,b)=>(a.start||'').localeCompare(b.start||''));
   save();renderRec();toast('フェーズの期間と開始条件を確定しました');
 };
 $('#phAdd').onclick=()=>{
   const last=DB.phases[DB.phases.length-1];
-  const s=last?addDays(last.end,1):today();
-  newPhase('第'+(DB.phases.length+1)+'フェーズ',s,addDays(s,13));renderRec();
+  const s=last&&last.end?addDays(last.end,1):PHASE_START_DEF;
+  newPhase('第'+(DB.phases.length+1)+'フェーズ',s,phaseEndDefault(s));renderRec();
 };
 $('#phDel').onclick=()=>{
   const ph=curPhase(); if(!ph)return;
@@ -1971,12 +2322,27 @@ $('#phDel').onclick=()=>{
   DB.matches=DB.matches.filter(m=>m.phaseId!==ph.id);
   DB.phases=DB.phases.filter(p=>p.id!==ph.id);DB.curPhase=null;save();renderRec();
 };
+/* 開始Divisionを選ぶと開始レートの目安を入れる（手入力した値は上書きしない） */
+$('#ph_div').onchange=()=>{
+  const r=DIV_RATE[$('#ph_div').value], cur=String($('#ph_rate').value||'');
+  if(r&&(cur===''||DIV_RATES.includes(cur)))$('#ph_rate').value=r;
+};
+$('#sumPhase').onclick=()=>{sumScope='phase';renderRec();};
+$('#sumAll').onclick=()=>{sumScope='all';renderRec();};
+$('#logPhase').onclick=()=>{logScope='phase';renderRec();};
+$('#logAll').onclick=()=>{logScope='all';renderRec();};
+$('#pinMs').onclick=()=>togglePin('ms','#m_ms');
+$('#pinMf').onclick=()=>togglePin('mf','#m_mf');
+$('#m_ms').addEventListener('change',()=>{if(DB.pin?.ms){DB.pin.ms=$('#m_ms').value;save();applyPins();}});
+$('#m_mf').addEventListener('change',()=>{if(DB.pin?.mf){DB.pin.mf=$('#m_mf').value;save();applyPins();}});
 $('#mAdd').onclick=addMatch;
 $('#mCsv').onclick=exportCsv;
 $('#sAdd').onclick=addStock;
 $('#sFilterAll').onclick=()=>{sFilter='all';renderSkl();};
 $('#sFilterStock').onclick=()=>{sFilter='stock';renderSkl();};
 $('#sFilterUsed').onclick=()=>{sFilter='used';renderSkl();};
+$('#sSearch').addEventListener('input',e=>{sQuery=e.target.value;renderSkl();});
+$('#sCat').addEventListener('change',e=>{sCatFilter=e.target.value;renderSkl();});
 $('#btnData').onclick=()=>{
   $('#dlgT').textContent='データ管理';
   $('#dlgB').innerHTML=`<div class="btnrow" style="margin-bottom:10px">
@@ -2001,9 +2367,9 @@ $('#btnData').onclick=()=>{
   const m=location.hash.match(/#b=(.+)$/);
   if(m){try{const o=b64d(m[1]);CUR=Object.assign(blank(o.pos||'OMF'),o);toast('共有された育成を読み込みました');}catch(e){}}
 })();
-$('#m_date').value=today();
+$('#m_date').value=MATCH_DATE_DEF;
 $('#s_date').value=today();
-renderAll(); renderLib(); renderRec(); renderSkl();
+renderAll(); renderLib(); renderRec(); renderSkl(); applyPins();
 </script>
 </body>
 </html>
