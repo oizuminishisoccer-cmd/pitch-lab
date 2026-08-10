@@ -57,7 +57,9 @@ header.top{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop
 .card h3 .sub{text-transform:none;letter-spacing:0;color:var(--tx3);font-weight:500;font-size:11px;margin-left:6px}
 label.f{display:block;margin-bottom:9px}
 label.f>span{display:block;font-size:11px;color:var(--tx3);margin-bottom:3px;letter-spacing:.04em}
-input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);outline:none}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;max-width:100%;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);outline:none}
+/* iOS の日付入力は放っておくと最小幅が広く、狭い画面で隣とぶつかる */
+input[type=date]{-webkit-appearance:none;appearance:none}
 input:focus,select:focus,textarea:focus{border-color:var(--ac)}
 textarea{resize:vertical;min-height:60px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
@@ -71,10 +73,12 @@ textarea{resize:vertical;min-height:60px}
 .btn:disabled:hover{border-color:var(--line)}
 /* 選択中のトグルボタン */
 .btn.on{background:rgba(61,220,132,.16);border-color:rgba(61,220,132,.55);color:var(--ac)}
-/* 入力欄の「固定」トグル */
-.pin{margin-left:6px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);background:var(--card2);
-  color:var(--tx3);font-size:9.5px;font-weight:700;cursor:pointer;vertical-align:1px}
-.pin.on{background:rgba(61,220,132,.18);border-color:rgba(61,220,132,.55);color:var(--ac)}
+/* 入力欄の「固定」トグル：ふだんは水色、固定するとピンク */
+.pin{margin-left:6px;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;cursor:pointer;vertical-align:1px;
+  border:1px solid rgba(74,168,255,.6);background:rgba(74,168,255,.16);color:var(--info)}
+.pin:hover{background:rgba(74,168,255,.28)}
+.pin.on{border-color:var(--pink);background:rgba(255,46,120,.18);color:var(--pink)}
+.pin.on:hover{background:rgba(255,46,120,.28)}
 /* 終了日のおすすめ（ピンクで囲う） */
 .phhint{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;
   border:1.5px solid var(--pink);background:rgba(255,46,120,.1);color:var(--pink)}
@@ -285,6 +289,9 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
   .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
   /* iOS Safari はフォント16px未満の入力にフォーカスすると自動ズームするため 16px にする */
   input[type=text],input[type=number],input[type=date],select,textarea{font-size:16px;padding:10px}
+  /* 16pxの日付入力は隣とぶつかるので、狭い画面では1行を丸ごと使う */
+  .row>.fdate{flex:1 1 100%}
+  input[type=date]{padding:10px 8px}
   .bs input.v{font-size:15px;width:56px;padding:5px}
   .card{padding:12px;border-radius:12px}
   .brandrow{padding:10px 0 6px}
@@ -509,8 +516,8 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <h3>フェーズ <span class="sub">期間を決めると自動で次フェーズへ</span></h3>
       <label class="f"><span>表示中のフェーズ</span><select id="phSel"></select></label>
       <div class="row">
-        <label class="f"><span>開始日</span><input type="date" id="ph_s"></label>
-        <label class="f"><span>終了日 <em style="font-style:normal;color:var(--gold)">※必須</em></span><input type="date" id="ph_e"></label>
+        <label class="f fdate"><span>開始日</span><input type="date" id="ph_s"></label>
+        <label class="f fdate"><span>終了日 <em style="font-style:normal;color:var(--gold)">※必須</em></span><input type="date" id="ph_e"></label>
       </div>
       <div id="phHint" style="margin:-4px 0 8px"></div>
       <label class="f"><span>フェーズ名</span><input type="text" id="ph_n" placeholder="第1フェーズ"></label>
@@ -539,7 +546,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
   <div class="card" style="margin-top:14px">
     <h3>試合を記録</h3>
     <div class="row">
-      <label class="f"><span>日付</span><input type="date" id="m_date"></label>
+      <label class="f fdate"><span>日付</span><input type="date" id="m_date"></label>
       <label class="f"><span>自分の得点</span><input type="number" id="m_gf" value="0" min="0"></label>
       <label class="f"><span>相手の得点</span><input type="number" id="m_ga" value="0" min="0"></label>
     </div>
@@ -590,7 +597,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <h3>スキル在庫に追加 <span class="sub">スキル追加で出たスキル</span></h3>
       <div class="row">
         <label class="f" style="flex:2"><span>出たスキル</span><select id="s_skill"></select></label>
-        <label class="f"><span>取得日</span><input type="date" id="s_date"></label>
+        <label class="f fdate"><span>取得日</span><input type="date" id="s_date"></label>
       </div>
       <label class="f"><span>メモ</span><input type="text" id="s_memo" placeholder="○連目 / 誰に付けたい など"></label>
       <div class="btnrow"><button class="btn p" id="sAdd">在庫に追加</button></div>
@@ -2228,7 +2235,7 @@ $('#helpBody').innerHTML=`
     <li><b>終了日が空のあいだは試合を記録できません。</b>終了日を入れて「期間・開始条件を確定」を押してください。</li>
     <li>開始Divisionを選ぶと開始レートの目安（<b>Div.1＝1800／Div.2＝1500／Div.3＝1200</b>）が自動で入ります。手入力した値は上書きしません。</li>
     <li>成績サマリーは<b>「このフェーズ」／「全期間」</b>で切り替えられます（「このフェーズ」は上のフェーズ選択と連動）。</li>
-    <li>自分のチームスタイル・フォメには<b>「固定」</b>ボタンがあり、固定すると記録のたびに選び直す必要がありません。</li>
+    <li>自分のチームスタイル・フォメには<b style="color:var(--info)">「固定」</b>ボタン（押すと<b style="color:var(--pink)">ピンク</b>に変わります）があり、固定すると記録のたびに選び直す必要がありません。</li>
     <li>試合ログは<b>「表示中のフェーズ」／「全フェーズ（分けて表示）」</b>を切り替え可能。全フェーズではフェーズごとに見出し（試合数・勝率・レート）が入ります。</li>
     <li>期間が過ぎると<b>同じ長さの次フェーズが自動で作成</b>されます（前フェーズ終了の翌日開始）。このとき<b>Divisionと到達レートが次フェーズの開始値として引き継がれます</b>。</li>
     <li>開始レートを入れておくと、レート推移グラフが<b>実際のレート</b>（開始レート＋増減）で描かれ、サマリーにも現在レートが出ます。未入力なら従来どおり増減の累積で表示します。</li>
