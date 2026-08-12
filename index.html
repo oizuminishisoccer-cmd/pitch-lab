@@ -136,11 +136,32 @@ tr.loghd td{background:var(--bg2);color:var(--tx);font-weight:800;font-size:12px
   padding:4px 8px 4px 2px;overscroll-behavior:contain}
 #baseEdit .scol h4{position:sticky;top:-4px;z-index:2;background:var(--card);margin:0 0 4px;padding:5px 2px}
 @media(min-width:760px){ #baseEdit .bs .n{width:118px;font-size:12px} #baseEdit .bs input.v{width:58px} }
-.bs{display:flex;align-items:center;gap:8px;padding:3px 6px;border-radius:8px}
+.bs{display:flex;align-items:center;gap:6px;padding:4px 6px 14px;border-radius:8px}
 .bs:nth-child(odd){background:rgba(255,255,255,.022)}
 .bs .n{width:96px;flex:0 0 auto;font-size:11px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bs input[type=range]{flex:1;min-width:60px;accent-color:var(--info);height:22px;cursor:grab;margin:0}
+/* スライダー＋目盛り */
+.bsr{position:relative;flex:1;min-width:90px;display:block}
+.bs input[type=range]{width:100%;accent-color:var(--info);height:26px;cursor:grab;margin:0;display:block}
 .bs input[type=range]:active{cursor:grabbing}
+.bsc{position:absolute;left:0;right:0;top:22px;height:12px;pointer-events:none;display:block}
+.bsc i{position:absolute;top:0;width:1px;height:5px;background:#39414f;transform:translateX(-.5px)}
+.bsc b{position:absolute;top:5px;font-size:8.5px;font-weight:600;color:var(--tx3);transform:translateX(-50%);line-height:1}
+/* ±1 ボタン（スライダーをドラッグしなくても細かく直せる） */
+.stp{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--card2);
+  color:var(--info);font-size:14px;font-weight:800;line-height:1;cursor:pointer;padding:0}
+.stp:hover{border-color:var(--info)}
+.stp:active{background:rgba(74,168,255,.2)}
+/* 入力もれの強調 */
+.card.need{border-color:rgba(255,91,76,.55);background:linear-gradient(180deg,rgba(255,91,76,.07),transparent 70%);margin-bottom:14px}
+select.need,input.need,button.need{border-color:var(--bad)!important;box-shadow:0 0 0 2px rgba(255,91,76,.18)}
+.tdrow{display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:5px 0;border-top:1px solid var(--line)}
+.tdrow:first-of-type{border-top:0}
+.tdrow i{flex:0 0 auto;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-style:normal;
+  font-size:11px;font-weight:800;background:rgba(255,91,76,.18);color:var(--bad)}
+.tdrow b{flex:0 0 auto;width:96px;color:var(--tx)}
+.tdrow span{color:var(--tx3)}
+.tdrow.done i{background:rgba(61,220,132,.18);color:var(--ac)}
+.tdrow.done b{color:var(--tx3)}
 .bs input.v{width:52px;flex:0 0 auto;text-align:right;font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;
   padding:3px 5px;border-radius:7px;border:1px solid var(--line);background:var(--bg2)}
 .bs input.v:focus{border-color:var(--info)}
@@ -377,6 +398,8 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
   <div class="grid sim">
     <div class="grid" style="align-content:start">
 
+      <div id="setupCheck"></div>
+
       <div class="card">
         <h3>1. 初期能力値設定 <span class="sub">まずは登録ポジションを選択</span></h3>
         <label class="f"><span>登録ポジション</span><select id="f_pos"></select></label>
@@ -443,11 +466,13 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 
       <div class="card">
         <h3>6. スキル</h3>
-        <h4 style="font-size:12px;margin-bottom:6px">初期搭載スキル <span class="cnt" id="cntBase"></span><br>
+        <h4 style="font-size:12px;margin-bottom:6px">初期搭載スキル <span class="cnt" id="cntBase"></span>
+          <button class="btn s d" id="btnResetBase" style="float:right;margin-top:-3px;font-weight:800">リセット</button><br>
           <span class="muted" style="font-weight:400">カードが最初から持っているもの・最大10個（<span style="color:#ff8ab4">ピンク＝特殊スキル</span>は後から追加できません）</span></h4>
         <div id="skillBase"></div>
         <div class="hr"></div>
-        <h4 style="font-size:12px;margin-bottom:6px">追加スキル <span class="cnt" id="cntAdd"></span><br>
+        <h4 style="font-size:12px;margin-bottom:6px">追加スキル <span class="cnt" id="cntAdd"></span>
+          <button class="btn s d" id="btnResetAdd" style="float:right;margin-top:-3px;font-weight:800">リセット</button><br>
           <span class="muted" style="font-weight:400">スキル追加／在庫からの継承で付けたもの・最大5個（通常スキルのみ）</span></h4>
         <div id="skillAdd"></div>
       </div>
@@ -656,7 +681,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <div class="muted" id="baseHdOvr"></div></div>
     <div class="btnrow">
       <button class="btn s" id="baseReset">ポジション初期値に戻す</button>
-      <button class="btn s p" id="baseClose">閉じる</button>
+      <button class="btn s d" id="baseDone" style="font-weight:800">入力を確定して閉じる</button>
     </div>
   </div>
   <div id="baseEdit"></div>
@@ -1020,8 +1045,15 @@ const vColorHex=v=>v>=90?'#4ee08a':v>=80?'#7ddc7d':v>=75?'#ffd24a':v>=65?'#ff9a3
    UI：初期設定
    ===================================================================== */
 function fillSel(el,arr,val){el.innerHTML=arr.map(v=>`<option${String(v)===String(val)?' selected':''}>${esc(v)}</option>`).join('');}
+/* 登録ポジションは未選択（—）から始める。選ぶまで posSet が立たない */
+function fillPosSel(){
+  const el=$('#f_pos'); if(!el)return;
+  el.innerHTML=`<option value="">—</option>`+POS.map(p=>
+    `<option value="${p}"${CUR.posSet&&p===CUR.pos?' selected':''}>${esc(p)}</option>`).join('');
+  el.value=CUR.posSet?CUR.pos:'';
+}
 function initSelects(){
-  fillSel($('#f_pos'),POS,CUR.pos); fillSel($('#f_style'),STYLES,CUR.style);
+  fillPosSel(); fillSel($('#f_style'),STYLES,CUR.style);
   fillSel($('#f_wff'),LEVEL4,CUR.wff); fillSel($('#f_wfa'),LEVEL4,CUR.wfa);
   fillSel($('#f_cond'),COND4,CUR.cond); fillSel($('#f_inj'),INJ3,CUR.inj);
   $('#g_apt').innerHTML=MGR_APT_VALUES.map(v=>`<option value="${v}">${v?v:'適性なし（補正なし）'}</option>`).join('');
@@ -1050,12 +1082,14 @@ function renderPitch(){
     box.appendChild(d);
   });
 }
-function boosterRow(label,slot,path,i,vals){
+/* other = もう一方の枠で選択中のブースター名（同じものは2枠に付けられない） */
+function boosterRow(label,slot,path,i,vals,other){
   const tgt=slot.n&&BOOSTERS[slot.n]?BOOSTERS[slot.n].map(k=>SNAME[k]).join('／'):'—';
   const opts=vals||[1,2,3];
   return `<div class="bslot">
     <label>${esc(label)}<span style="color:var(--tx3);margin-left:6px">${esc(tgt)}</span></label>
-    <select data-bp="${path}" data-bi="${i}" data-bf="n"><option value="">（なし）</option>${BOOSTNAMES.map(n=>`<option${n===slot.n?' selected':''}>${esc(n)}</option>`).join('')}</select>
+    <select data-bp="${path}" data-bi="${i}" data-bf="n"><option value="">（なし）</option>${BOOSTNAMES.map(n=>
+      `<option${n===slot.n?' selected':''}${n===other&&n!==slot.n?' disabled':''}>${esc(n)}</option>`).join('')}</select>
     <select data-bp="${path}" data-bi="${i}" data-bf="v"${opts.length<2?' disabled':''}>${opts.map(v=>`<option value="${v}"${+slot.v===v?' selected':''}>+${v}${v===1&&opts.length>1?'(craft)':''}</option>`).join('')}</select>
   </div>`;
 }
@@ -1063,14 +1097,21 @@ function bindBoosterSelects(root){
   $$('[data-bp]',root).forEach(el=>el.onchange=()=>{
     const arr=CUR.boosters, i=+el.dataset.bi;
     const s=arr[i]||(arr[i]={n:'',v:i?1:3});
-    if(el.dataset.bf==='n')s.n=el.value; else s.v=+el.value;
+    if(el.dataset.bf==='n'){
+      /* 同じブースターを2枠に入れると効果が二重に乗ってしまうので禁止 */
+      const dup=arr.some((o,j)=>j!==i&&o&&o.n&&o.n===el.value);
+      if(el.value&&dup){toast(`「${el.value}」はもう一方の枠で選択済みです`);renderBoosters();return;}
+      s.n=el.value;
+    } else s.v=+el.value;
     renderBoosters();renderStats();
   });
 }
 function renderBoosters(){
   $('#boosterBox').innerHTML=[0,1].map(i=>
-    boosterRow('ブースター '+(i+1),CUR.boosters[i]||{n:'',v:i?1:3},'p',i,BOOST_VALS[i])).join('')+
-    `<div class="muted">ブースター1は<b>ビッグタイム等の +4</b> まで選べます。効果値ぶんだけ能力値の上限 ${STAT_CAP} を超えられます。</div>`;
+    boosterRow('ブースター '+(i+1),CUR.boosters[i]||{n:'',v:i?1:3},'p',i,BOOST_VALS[i],
+      (CUR.boosters[i?0:1]||{}).n)).join('')+
+    `<div class="muted">ブースター1は<b>ビッグタイム等の +4</b> まで選べます。効果値ぶんだけ能力値の上限 ${STAT_CAP} を超えられます。`+
+    `<br>同じブースターは<b>2枠に付けられません</b>（効果が二重に乗るのを防ぐため）。</div>`;
   bindBoosterSelects($('#boosterBox'));
 }
 /* 監督ブースター＝能力値そのものを +1 するバフ（26項目から選択・最大2つ） */
@@ -1218,12 +1259,25 @@ function renderBaseEdit(){
     `<br><b>${esc(CUR.pos)}</b> の主要能力 <b style="color:var(--v80)">${esc(key.join('・'))}</b>`+
     (CUR.pos==='GK'?'' : `／GK能力は一律 <b>${GK_FIELD}</b>`);
   $('#baseHdPos').textContent=`（${CUR.pos}${CUR.name?' / '+CUR.name:''}）`;
+  /* 目盛りは 40/50/…/90/99。10刻みの位置に線を引き、下に数字を出す */
+  const TICKS=[40,50,60,70,80,90,99];
+  const pct=v=>((v-BASE_MIN)/(BASE_MAX-BASE_MIN)*100).toFixed(2);
+  const scale=`<span class="bsc">${TICKS.map(v=>`<i style="left:${pct(v)}%"></i>`).join('')}`+
+    `${TICKS.map(v=>`<b style="left:${pct(v)}%">${v}</b>`).join('')}</span>`;
+  const ORDER=[];
   $('#baseEdit').innerHTML=`<div class="scols">`+COLS.map(([c,n])=>
-    `<div class="scol"><h4>${esc(n)}</h4>`+STATS.filter(s=>s[2]===c).map(([k,nm])=>
-      `<div class="bs"><span class="n" title="${esc(nm)}">${esc(nm)}</span>
-        <input type="range" min="${BASE_MIN}" max="${BASE_MAX}" step="1" value="${clamp(CUR.base[k],BASE_MIN,BASE_MAX)}" data-bs="${k}">
-        <input type="number" class="v" min="${BASE_MIN}" max="${BASE_MAX}" step="1" value="${CUR.base[k]}" data-bv="${k}" style="color:${vColor(CUR.base[k])}"></div>`).join('')+`</div>`
-  ).join('')+`</div><div class="muted" style="margin-top:6px">スライダーでも数値の直接入力でも調整できます（${BASE_MIN}〜${BASE_MAX}）。ゲーム内の Lv.1 実数値に合わせるとシミュレーションが実機と一致します。</div>`;
+    `<div class="scol"><h4>${esc(n)}</h4>`+STATS.filter(s=>s[2]===c).map(([k,nm])=>{
+      ORDER.push(k);
+      return `<div class="bs"><span class="n" title="${esc(nm)}">${esc(nm)}</span>
+        <button type="button" class="stp" data-bstep="${k}" data-d="-1" aria-label="1下げる">−</button>
+        <span class="bsr"><input type="range" min="${BASE_MIN}" max="${BASE_MAX}" step="1" value="${clamp(CUR.base[k],BASE_MIN,BASE_MAX)}" data-bs="${k}">${scale}</span>
+        <button type="button" class="stp" data-bstep="${k}" data-d="1" aria-label="1上げる">＋</button>
+        <input type="number" class="v" min="${BASE_MIN}" max="${BASE_MAX}" step="1" inputmode="numeric" enterkeyhint="next"
+          value="${CUR.base[k]}" data-bv="${k}" data-bi2="${ORDER.length-1}" style="color:${vColor(CUR.base[k])}"></div>`;}).join('')+`</div>`
+  ).join('')+`</div>`+
+    `<div class="muted" style="margin-top:8px">スライダー／<b>−＋ボタン（1ずつ）</b>／数値の直接入力で調整できます（${BASE_MIN}〜${BASE_MAX}）。`+
+    `スマホでは入力後に<b>「改行（次へ）」</b>で次の能力へ進みます。ゲーム内の Lv.1 実数値に合わせるとシミュレーションが実機と一致します。`+
+    `<br>入れ終わったら右上の<b style="color:var(--bad)">「入力を確定して閉じる」</b>を押してください。</div>`;
   const setBase=(k,v,from)=>{
     v=clamp(Math.round(v),BASE_MIN,BASE_MAX);
     CUR.base[k]=v;
@@ -1233,12 +1287,49 @@ function renderBaseEdit(){
     renderStats(); updateBaseHead();
   };
   $$('#baseEdit input[type=range]').forEach(i=>i.addEventListener('input',()=>setBase(i.dataset.bs,+i.value,'range')));
-  $$('#baseEdit input.v').forEach(i=>{
+  /* −＋ボタン：スライダーをドラッグしなくても1ずつ動かせる */
+  $$('#baseEdit [data-bstep]').forEach(b=>b.onclick=()=>setBase(b.dataset.bstep,(CUR.base[b.dataset.bstep]||0)+(+b.dataset.d),'btn'));
+  const inputs=$$('#baseEdit input.v');
+  inputs.forEach(i=>{
     i.addEventListener('input',()=>{ if(i.value==='')return; setBase(i.dataset.bv,+i.value,'num'); });
     i.addEventListener('blur',()=>setBase(i.dataset.bv,+i.value||BASE_MIN,'blur'));
-    i.addEventListener('keydown',e=>{if(e.key==='Enter')i.blur();});
+    i.addEventListener('focus',()=>{try{i.select();}catch(e){}});
+    /* 改行（Enter / 完了）で次の能力の入力欄へ。最後まで行ったら確定ボタンへ */
+    i.addEventListener('keydown',e=>{
+      if(e.key!=='Enter')return;
+      e.preventDefault();
+      setBase(i.dataset.bv,+i.value||BASE_MIN,'blur');
+      const nx=inputs[(+i.dataset.bi2)+1];
+      if(nx){nx.focus();try{nx.select();}catch(x){}}
+      else {i.blur(); const d=$('#baseDone'); if(d)d.focus();}
+    });
   });
+  const done=$('#baseDone');
+  if(done)done.onclick=()=>{
+    CUR.baseSet=true; syncFromForm(); renderStats(); renderSetupCheck();
+    $('#dlgBase').close(); toast('初期能力値を確定しました');
+  };
   updateBaseHead();
+}
+/* --- 入力忘れチェック：登録ポジション・初期能力値・最大レベル --- */
+function setupTodo(){
+  return [
+    {k:'pos', ok:!!CUR.posSet, label:'登録ポジション', hint:'「1. 初期能力値設定」で選んでください（未選択のままだと CF の初期値になります）'},
+    {k:'base',ok:!!CUR.baseSet,label:'初期能力値',   hint:'「スライダー / 手入力で調整」で実数値を入れて<b>「入力を確定して閉じる」</b>を押してください'},
+    {k:'lv',  ok:lvSet(),      label:'最大レベル',   hint:'「2. 選手情報」に入力してください。入力するまで育成できません'}
+  ];
+}
+function renderSetupCheck(){
+  const box=$('#setupCheck'); if(!box)return;
+  const todo=setupTodo(), rest=todo.filter(t=>!t.ok);
+  /* 未入力の欄を赤枠で強調する */
+  const mark=(sel,on)=>{const el=$(sel); if(el)el.classList.toggle('need',on);};
+  mark('#f_pos',!todo[0].ok); mark('#btnBase',!todo[1].ok); mark('#f_lv',!todo[2].ok);
+  if(!rest.length){box.innerHTML='';return;}
+  box.innerHTML=`<div class="card need"><h3 style="color:var(--bad)">⚠ 入力もれがあります <span class="sub">残り ${rest.length}項目</span></h3>`+
+    todo.map(t=>`<div class="tdrow${t.ok?' done':''}"><i>${t.ok?'✓':'!'}</i><b>${t.label}</b>`+
+      `<span>${t.ok?'設定ずみ':t.hint}</span></div>`).join('')+
+    `</div>`;
 }
 /* モーダル内でも育成後の総合値がわかるようにヘッダーへ表示 */
 function updateBaseHead(){
@@ -1285,6 +1376,7 @@ function renderStats(){
   });
   bindEditor();
   updateTPBar();
+  renderSetupCheck();
 
   const apt=Object.entries(CUR.apt).sort((a,b)=>b[1]-a[1]);
   const m=mgrOf(CUR);
@@ -1435,13 +1527,13 @@ function syncFromForm(){
   renderStats();
 }
 function syncToForm(){
-  $('#f_name').value=CUR.name; fillSel($('#f_pos'),POS,CUR.pos); fillSel($('#f_style'),STYLES,CUR.style);
+  $('#f_name').value=CUR.name; fillPosSel(); fillSel($('#f_style'),STYLES,CUR.style);
   $('#f_h').value=CUR.height; $('#f_w').value=CUR.weight; fillSel($('#f_foot'),['右足','左足'],CUR.foot);
   fillSel($('#f_wff'),LEVEL4,CUR.wff); fillSel($('#f_wfa'),LEVEL4,CUR.wfa);
   fillSel($('#f_cond'),COND4,CUR.cond); fillSel($('#f_inj'),INJ3,CUR.inj);
   $('#f_lv').value=CUR.maxLv||'';
 }
-function renderAll(){syncToForm();renderPitch();renderBoosters();renderMgr();renderSkillPick();renderBaseEdit();renderStats();}
+function renderAll(){syncToForm();renderPitch();renderBoosters();renderMgr();renderSkillPick();renderBaseEdit();renderStats();renderSetupCheck();}
 </script>
 
 <script>
@@ -2321,18 +2413,29 @@ initSelects();
   $(s).addEventListener('input',syncFromForm); $(s).addEventListener('change',()=>{syncFromForm();renderMgr();});
 });
 $('#f_pos').onchange=()=>{
-  CUR.pos=$('#f_pos').value; CUR.base=structuredClone(PRESET[CUR.pos]);
+  const v=$('#f_pos').value;
+  if(!v){CUR.posSet=false;fillPosSel();renderSetupCheck();return;}   /* 「—」に戻したら未選択あつかい */
+  CUR.pos=v; CUR.base=structuredClone(PRESET[CUR.pos]);
   CUR.apt={[CUR.pos]:2}; TCAT.forEach(c=>CUR.tp[c[0]]=0); FOCUS=null;LASTSTAT=null;
+  CUR.posSet=true; CUR.baseSet=false;   /* ポジションを変えたら初期値は入れ直し */
   renderAll(); toast(CUR.pos+' の初期値を設定しました');
 };
 $('#btnPreset').onclick=()=>{CUR.base=structuredClone(PRESET[CUR.pos]);renderBaseEdit();renderStats();toast('初期値に戻しました');};
 $('#btnBase').onclick=()=>{ renderBaseEdit(); $('#dlgBase').showModal(); };
-$('#baseClose').onclick=()=>$('#dlgBase').close();
 $('#baseReset').onclick=()=>{CUR.base=structuredClone(PRESET[CUR.pos]);renderBaseEdit();renderStats();toast(CUR.pos+' の初期能力値に戻しました');};
 $('#btnBelli').onclick=()=>{
   CUR=Object.assign(blank(BELLINGHAM.pos),structuredClone(BELLINGHAM));
+  CUR.posSet=true; CUR.baseSet=true;
   CUR.tp=Object.assign(Object.fromEntries(TCAT.map(c=>[c[0],0])),BELLINGHAM.rec);
   FOCUS=null;LASTSTAT=null; renderAll(); toast('BTベリンガム＋推奨振り分けを読み込みました');
+};
+$('#btnResetBase').onclick=()=>{
+  if(!CUR.skillsBase.length){toast('初期搭載スキルは選ばれていません');return;}
+  CUR.skillsBase=[];renderSkillPick();renderStats();toast('初期搭載スキルをリセットしました');
+};
+$('#btnResetAdd').onclick=()=>{
+  if(!CUR.skillsAdd.length){toast('追加スキルは選ばれていません');return;}
+  CUR.skillsAdd=[];renderSkillPick();renderStats();toast('追加スキルをリセットしました');
 };
 $('#btnAuto').onclick=autoAssign;
 $('#btnReset').onclick=()=>{PREV=structuredClone(CUR.tp);TCAT.forEach(c=>CUR.tp[c[0]]=0);renderStats();toast('リセットしました');};
