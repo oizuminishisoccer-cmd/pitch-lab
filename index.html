@@ -72,6 +72,9 @@ textarea{resize:vertical;min-height:60px}
 .btn.p{background:linear-gradient(140deg,var(--ac),var(--ac2));color:#062012;border-color:transparent}
 .btn.d{color:var(--bad);border-color:#4a2b3a}
 .btn.s{padding:6px 10px;font-size:12px;border-radius:8px}
+/* スクショ/テキストから読み取る：目立つ塗りつぶし */
+.btn.ocr{background:linear-gradient(140deg,#4aa8ff,#7a5cff);color:#04101f;border-color:transparent;font-weight:800}
+.btn.ocr:hover{filter:brightness(1.08);border-color:transparent}
 .btn:disabled{opacity:.4;cursor:default}
 .btn:disabled:hover{border-color:var(--line)}
 /* 選択中のトグルボタン */
@@ -155,12 +158,10 @@ tr.loghd td{background:var(--bg2);color:var(--tx);font-weight:800;font-size:12px
 /* 入力もれの強調 */
 .card.need{border-color:rgba(255,91,76,.55);background:linear-gradient(180deg,rgba(255,91,76,.07),transparent 70%);margin-bottom:14px}
 select.need,input.need,button.need{border-color:var(--bad)!important;box-shadow:0 0 0 2px rgba(255,91,76,.18)}
-/* プレースタイル：攻撃時＝薄い赤／守備時＝薄い水色で囲う */
-label.f.ps{border-radius:11px;padding:8px 10px 6px;margin-bottom:9px}
-label.f.ps.atk{border:1px solid rgba(255,91,76,.45);background:rgba(255,91,76,.08)}
-label.f.ps.def{border:1px solid rgba(120,200,255,.5);background:rgba(120,200,255,.1)}
-label.f.ps.atk>span{color:#ff9d92}
-label.f.ps.def>span{color:#9ad8ff}
+/* プレースタイル：見出しの「（攻撃時）／（守備時）」だけ色を付ける */
+label.f.ps>span i{font-style:normal;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:3px}
+label.f.ps.atk>span i{color:#ff9d92;background:rgba(255,91,76,.16)}
+label.f.ps.def>span i{color:#9ad8ff;background:rgba(120,200,255,.18)}
 .tdrow{display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:5px 0;border-top:1px solid var(--line)}
 .tdrow:first-of-type{border-top:0}
 .tdrow i{flex:0 0 auto;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-style:normal;
@@ -273,6 +274,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 .bslot.edge{grid-template-columns:1fr 1fr 92px;border:1px solid rgba(255,46,120,.4);background:rgba(255,46,120,.06);
   border-radius:10px;padding:8px}
 .bslot.edge label{grid-column:1/4}
+.bslot.lock{opacity:.5}
 .bslot label{font-size:10.5px;color:var(--tx3);grid-column:1/3;margin-bottom:-3px}
 .info{display:flex;gap:8px;flex-wrap:wrap}
 .info>div{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:12px}
@@ -417,8 +419,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
         <div class="btnrow">
           <button class="btn s" id="btnPreset">ポジション初期値に戻す</button>
           <button class="btn s p" id="btnBase">スライダー / 手入力で調整</button>
-          <button class="btn s" id="btnOcr">スクショ / テキストから読み取る</button>
-          <button class="btn s" id="btnBelli">BTベリンガムを読込</button>
+          <button class="btn ocr" id="btnOcr">スクショ / テキストから読み取る</button>
         </div>
       </div>
 
@@ -426,8 +427,8 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
         <h3>2. 選手情報 <span class="sub">名前・プレースタイル・レベル</span></h3>
         <label class="f"><span>選手名</span><input type="text" id="f_name" placeholder="例：J.ベリンガム【BT】"></label>
         <div class="row">
-          <label class="f ps atk"><span>プレースタイル（攻撃時）</span><select id="f_style"></select></label>
-          <label class="f ps def"><span>プレースタイル（守備時）<em style="font-style:normal;color:var(--info)">NEW</em></span><select id="f_style2"></select></label>
+          <label class="f ps atk"><span>プレースタイル<i>（攻撃時）</i></span><select id="f_style"></select></label>
+          <label class="f ps def"><span>プレースタイル<i>（守備時）</i></span><select id="f_style2"></select></label>
         </div>
         <div class="muted" style="margin:-2px 0 9px">※ アップデートでプレースタイルが<b>攻撃時／守備時の2つ</b>になりました。守備時は現在<b>ファーストディフェンダー</b>のみ判明しています。</div>
         <div class="row">
@@ -483,7 +484,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
         <h3>6. スキル</h3>
         <h4 style="font-size:12px;margin-bottom:6px">初期搭載スキル <span class="cnt" id="cntBase"></span>
           <button class="btn s d" id="btnResetBase" style="float:right;margin-top:-3px;font-weight:800">リセット</button><br>
-          <span class="muted" style="font-weight:400">カードが最初から持っているもの・最大10個（<span style="color:#ff8ab4">ピンク＝特殊スキル</span>は後から追加できません）</span></h4>
+          <span class="muted" style="font-weight:400">カードが最初から持っているもの・最大10個（<span style="color:#ff8ab4">ピンク＝特殊スキル</span>は後から追加できず、<b>最大3個</b>まで）</span></h4>
         <div id="skillBase"></div>
         <div class="hr"></div>
         <h4 style="font-size:12px;margin-bottom:6px">追加スキル <span class="cnt" id="cntAdd"></span>
@@ -729,10 +730,9 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
     <button class="btn s" id="ocrAdd">追加で読み取る</button>
     <span id="ocrProg" class="muted" style="align-self:center"></span></div>
   <input type="file" id="ocrFile" accept="image/*" multiple style="display:none">
-  <label class="f" style="margin-top:8px"><span>1行の数値の並び</span><select id="ocrPair">
-    <option value="auto">自動で判定</option>
-    <option value="yes">通常 ▶ 最大 の2つ（モバイル版）→ 左の「通常」を使う</option>
-    <option value="no">1つだけ</option></select></label>
+  <label class="f" style="margin-top:8px"><span>読み取り元</span><select id="ocrSrc">
+    <option value="mobile">モバイル版（複数枚・1行に「通常 ▶ 最大」）→ <b>通常だけ</b>を使う</option>
+    <option value="console">家庭用機版（1枚・数値は1つ）</option></select></label>
 
   <div class="hr"></div>
   <div id="ocrResult"></div>
@@ -782,6 +782,8 @@ const stepCost=n=>Math.ceil((n+1)/4);
 
 /* --- スキル所持上限 --- */
 const MAX_BASE_SKILL=10, MAX_ADD_SKILL=5;
+/* 特殊スキル（カード固有）は1枚につき3つまで */
+const MAX_SPECIAL=3;
 
 /* --- ポジション（攻撃側→GK の順） --- */
 const POS=['CF','ST','RWG','LWG','OMF','RMF','LMF','CMF','DMF','RSB','LSB','CB','GK'];
@@ -858,7 +860,7 @@ const MGR_BOOST_VAL=1;
 /* 能力値の通常上限。ブースターの上昇分だけこの値を超えられる */
 const STAT_CAP=99;
 /* 選手ブースターの効果値：スロット1はビッグタイム等の +4 まで、スロット2は +3 まで */
-const BOOST_VALS=[[1,2,3,4],[1,2,3]];
+const BOOST_VALS=[[1,2,3,4,5],[1,2,3]];
 
 /* --- 監督：チームスタイル適性数値による全体補正 ---
    [適性値, +1になる上限, +2になる上限]（それを超えると +3。40未満は補正なし） */
@@ -1149,20 +1151,21 @@ function renderPitch(){
 }
 /* other = もう一方の枠で選択中のブースター名（同じものは2枠に付けられない）
    edge = この枠にエッジブースターを選べるか（ブースター2のみ） */
-function boosterRow(label,slot,path,i,vals,other,edge){
+function boosterRow(label,slot,path,i,vals,other,edge,lock){
   const ed=isEdge(slot);
+  const dis=lock?' disabled':'';
   const tgt=ed?(slot.k?SNAME[slot.k]+' が大幅上昇':'上げる能力を選んでください')
               :(slot.n&&BOOSTERS[slot.n]?BOOSTERS[slot.n].map(k=>SNAME[k]).join('／'):'—');
   const opts=ed?EDGE_VALS:(vals||[1,2,3]);
-  return `<div class="bslot${ed?' edge':''}">
-    <label>${esc(label)}<span style="color:${ed?'var(--pink)':'var(--tx3)'};margin-left:6px">${esc(tgt)}</span></label>
+  return `<div class="bslot${ed?' edge':''}${lock?' lock':''}">
+    <label>${esc(label)}<span style="color:${ed?'var(--pink)':'var(--tx3)'};margin-left:6px">${lock?'エッジブースター使用中のため選べません':esc(tgt)}</span></label>
     ${ed?`<input type="text" value="${EDGE_NAME}" disabled>`:
-      `<select data-bp="${path}" data-bi="${i}" data-bf="n"><option value="">（なし）</option>${BOOSTNAMES.map(n=>
+      `<select data-bp="${path}" data-bi="${i}" data-bf="n"${dis}><option value="">（なし）</option>${BOOSTNAMES.map(n=>
       `<option${n===slot.n?' selected':''}${n===other&&n!==slot.n?' disabled':''}>${esc(n)}</option>`).join('')}</select>`}
     ${ed?`<select data-bp="${path}" data-bi="${i}" data-bf="k">${COLS.map(([c,cn])=>`<optgroup label="${esc(cn)}">`+
         STATS.filter(t=>t[2]===c).map(([k,nm])=>`<option value="${k}"${k===slot.k?' selected':''}>${esc(nm)}</option>`).join('')+
         `</optgroup>`).join('')}</select>`:''}
-    <select data-bp="${path}" data-bi="${i}" data-bf="v"${opts.length<2?' disabled':''}>${opts.map(v=>`<option value="${v}"${+slot.v===v?' selected':''}>+${v}${v===1&&opts.length>1&&!ed?'(craft)':''}</option>`).join('')}</select>
+    <select data-bp="${path}" data-bi="${i}" data-bf="v"${(opts.length<2||lock)?' disabled':''}>${opts.map(v=>`<option value="${v}"${+slot.v===v?' selected':''}>+${v}${v===1&&opts.length>1&&!ed?'(craft)':''}</option>`).join('')}</select>
   </div>`;
 }
 function bindBoosterSelects(root){
@@ -1182,24 +1185,25 @@ function bindBoosterSelects(root){
   });
 }
 function renderBoosters(){
-  const eg=CUR.boosters[2];
+  const eg=CUR.boosters[2], edgeOn=isEdge(eg);
   $('#boosterBox').innerHTML=[0,1].map(i=>
     boosterRow('ブースター '+(i+1),CUR.boosters[i]||{n:'',v:i?1:3},'p',i,BOOST_VALS[i],
-      (CUR.boosters[i?0:1]||{}).n)).join('')+
+      (CUR.boosters[i?0:1]||{}).n,false,edgeOn&&i===1)).join('')+
     /* エッジブースターはブースター2の「+1」の下にボタンで出す */
     `<div class="btnrow" style="margin:-2px 0 8px">
-      <button class="btn s" id="btnEdge" style="${isEdge(eg)?'border-color:var(--pink);color:var(--pink)':'color:var(--pink)'}">${
-        isEdge(eg)?'エッジブースターを外す':'＋ エッジブースター（新）を追加'}</button></div>`+
-    (isEdge(eg)?boosterRow(EDGE_NAME,eg,'p',2,EDGE_VALS,'',true):'')+
+      <button class="btn s" id="btnEdge" style="${edgeOn?'border-color:var(--pink);color:var(--pink)':'color:var(--pink)'}">${
+        edgeOn?'エッジブースターを外す':'＋ エッジブースター（新）を追加'}</button></div>`+
+    (edgeOn?boosterRow(EDGE_NAME,eg,'p',2,EDGE_VALS,'',true):'')+
     `<div class="muted">ブースター1は<b>ビッグタイム等の +4</b> まで選べます。効果値ぶんだけ能力値の上限 ${STAT_CAP} を超えられます。`+
     `<br>同じブースターは<b>2枠に付けられません</b>（効果が二重に乗るのを防ぐため）。`+
     `<br><b style="color:var(--pink)">${EDGE_NAME}</b>（新）は上のボタンから追加でき、選んだ<b>能力ひとつが大幅に上昇</b>します。`+
+    (edgeOn?`<br><b style="color:var(--pink)">エッジブースターを付けているあいだは、ブースター2は選べません。</b>`:'')+
     `<span class="muted">上昇値の正式な範囲は未判明のため、暫定で +${EDGE_VALS[0]}〜+${EDGE_VALS[EDGE_VALS.length-1]} を用意しています。</span></div>`;
   bindBoosterSelects($('#boosterBox'));
   const be=$('#btnEdge');
   if(be)be.onclick=()=>{
     if(isEdge(CUR.boosters[2]))CUR.boosters.length=2;
-    else CUR.boosters[2]={n:EDGE_NAME,k:'',v:EDGE_VALS[0]};
+    else {CUR.boosters[1]={n:'',v:1}; CUR.boosters[2]={n:EDGE_NAME,k:'',v:EDGE_VALS[0]};}
     renderBoosters();renderStats();
   };
 }
@@ -1303,17 +1307,19 @@ function openMgrPresetDlg(){
   $('#dlg').showModal();
 }
 /* sel=この枠の選択リスト / other=もう一方の枠（重複選択を禁止する） */
+const spCount=arr=>(arr||[]).filter(s=>SPECIAL.has(s)).length;
 function skillChips(sel,other,attr,onlyNormal,limit){
-  const full=sel.length>=limit;
+  const full=sel.length>=limit, spFull=spCount(sel)>=MAX_SPECIAL;
   return Object.entries(SKILLS).map(([c,a])=>{
     const arr=onlyNormal?a.filter(s=>!SPECIAL.has(s)&&!AUTO_SKILL.has(s)):a;
     if(!arr.length)return '';
     return `<div class="muted" style="margin:6px 0 3px">${esc(c)}</div>`+
       arr.map(s=>{
-        const on=sel.includes(s), dup=other.includes(s);
-        const dis=!on&&(dup||full);
-        return `<span class="chip${SPECIAL.has(s)?' sp':''}${on?' on':''}${dis?' dis':''}"`+
-          ` ${attr}="${esc(s)}"${dup?' data-dup="1" title="もう一方の枠で選択済み"':''}>`+
+        const on=sel.includes(s), dup=other.includes(s), sp=SPECIAL.has(s);
+        const spOver=sp&&!on&&spFull;
+        const dis=!on&&(dup||full||spOver);
+        return `<span class="chip${sp?' sp':''}${on?' on':''}${dis?' dis':''}"`+
+          ` ${attr}="${esc(s)}"${dup?' data-dup="1" title="もう一方の枠で選択済み"':spOver?` title="特殊スキルは最大${MAX_SPECIAL}個までです"`:''}>`+
           `${on?'✓ ':''}${dup?'／':''}${esc(s)}</span>`;
       }).join('');
   }).join('');
@@ -1321,13 +1327,17 @@ function skillChips(sel,other,attr,onlyNormal,limit){
 function renderSkillPick(){
   const b=CUR.skillsBase,a=CUR.skillsAdd;
   const cb=$('#cntBase'), ca=$('#cntAdd');
-  cb.textContent=`${b.length} / ${MAX_BASE_SKILL}`; cb.className='cnt'+(b.length>=MAX_BASE_SKILL?' full':'');
+  cb.textContent=`${b.length} / ${MAX_BASE_SKILL}（特殊 ${spCount(b)} / ${MAX_SPECIAL}）`;
+  cb.className='cnt'+(b.length>=MAX_BASE_SKILL||spCount(b)>=MAX_SPECIAL?' full':'');
   ca.textContent=`${a.length} / ${MAX_ADD_SKILL}`; ca.className='cnt'+(a.length>=MAX_ADD_SKILL?' full':'');
   $('#skillBase').innerHTML=skillChips(b,a,'data-sb',false,MAX_BASE_SKILL);
   $('#skillAdd').innerHTML=skillChips(a,b,'data-sa',true,MAX_ADD_SKILL);
   const bind=(sel,attr,mine,other,limit,label)=>$$(sel).forEach(c=>c.onclick=()=>{
     const s=c.dataset[attr];
     if(!mine.includes(s)&&other.includes(s)){toast(`「${s}」はもう一方の枠で選択済みです`);return;}
+    /* 特殊スキルは3つまで */
+    if(!mine.includes(s)&&SPECIAL.has(s)&&spCount(mine)>=MAX_SPECIAL){
+      toast(`特殊スキルは最大${MAX_SPECIAL}個までです`);return;}
     if(tog(mine,s,limit)){renderSkillPick();renderStats();}
     else toast(`${label}は最大${limit}個までです`);
   });
@@ -1507,7 +1517,8 @@ function loadTesseract(){
 }
 /* 読み取ったテキストをためておく（モバイル版の複数枚をまとめるため） */
 let OCRTEXT='';
-function ocrPairMode(){ const e=$('#ocrPair'); return e?e.value:'auto'; }
+/* モバイル版は「通常 ▶ 最大」の2列なので通常だけを使う。家庭用機版は数値が1つ */
+function ocrPairMode(){ const e=$('#ocrSrc'); return e&&e.value==='console'?'no':'yes'; }
 function ocrReparse(){
   const t=[OCRTEXT,$('#ocrText')?$('#ocrText').value:''].filter(Boolean).join('\n');
   if(!t.trim()){renderOcrResult(null);return;}
@@ -2540,8 +2551,9 @@ $('#helpBody').innerHTML=`
   </tbody></table></div>
   <div class="note" style="margin-top:12px;border-color:var(--pink);background:rgba(255,46,120,.07)">
     <b style="color:var(--pink)">アップデートで追加（枠組みのみ）</b><br>
-    ・プレースタイルが<b>攻撃時（薄い赤）／守備時（薄い水色）の2つ</b>になりました。守備時は現在 <b>ファーストディフェンダー</b> のみ判明しています。<br>
-    ・<b>エッジブースター</b>は<b>ブースター2の効果値（+1）の下のボタン</b>から追加できます。選んだ<b>能力ひとつが大幅に上昇</b>します（上昇値は暫定で +1〜+8）。</div>
+    ・プレースタイルが<b>攻撃時／守備時の2つ</b>になりました（見出しの「（攻撃時）」は薄い赤、「（守備時）」は薄い水色）。守備時は現在 <b>ファーストディフェンダー</b> のみ判明しています。<br>
+    ・<b>エッジブースター</b>は<b>ブースター2の効果値（+1）の下のボタン</b>から追加できます。選んだ<b>能力ひとつが大幅に上昇</b>し、<b>付けているあいだブースター2は選べません</b>（上昇値は暫定で +1〜+8）。<br>
+    ・ブースター1の効果値に <b>+5</b> を追加しました。</div>
   <div class="note" style="margin-top:12px"><b>② 監督ブースター（バフ）</b><br>
     選手ブースターと違い、<b>指定された能力値そのもの</b>（オフェンスセンス等）がスカッド全員 <b>+${MGR_BOOST_VAL}</b> されます。監督は<b>最大2つ</b>持ちます。</div>
   <div class="note" style="margin-top:12px"><b>③ 監督プリセット</b><br>
@@ -2568,8 +2580,8 @@ $('#helpBody').innerHTML=`
   <div class="note" style="margin-top:8px"><b>スクショ／テキストから読み取る</b><br>
     <b>① テキスト貼り付け（おすすめ）</b>…iPhoneは写真を長押し →「テキストを認識」→ コピー、Macは写真アプリ／プレビューで文字を選択してコピー、Androidは Google レンズ。
     貼り付けると<b>能力名で対応づけ</b>して26項目をまとめて入力します（能力名が読めていない場合は<b>数字の並び順</b>で割り当てます）。オフラインでも使えます。<br>
-    <b>② 画像から読み取る</b>…スクショを直接解析します。<b>家庭用機版は1枚</b>、<b>モバイル版は複数枚</b>まとめて選べます（「追加で読み取る」で後から足すことも可能）。
-    モバイル版は1行に「通常 ▶ 最大」が並びますが、<b>左の「通常」＝Lv.1の値</b>を自動で採用します（うまくいかないときは「1行の数値の並び」で切り替え）。
+    <b>② 画像から読み取る</b>…スクショを直接解析します。<b>読み取り元</b>で「モバイル版（複数枚）」「家庭用機版（1枚）」を選んでください。
+    モバイル版は1行に「通常 ▶ 最大」が並ぶので<b>通常（Lv.1の値）だけ</b>を使い、家庭用機版は数値が1つとして読み取ります。「追加で読み取る」で後から枚数を足せます。
     初回だけ文字認識エンジンを外部から読み込むため<b>通信が必要</b>で、数MBのダウンロードが発生します。ゲームのフォントは誤認識も出るため、反映前のプレビューで必ず確認してください。<br>
     どちらも反映前に<b>「現在」と「読み取り」を並べたプレビュー</b>が出て、その場で数値を直せます。</div>
   <div class="scroll" style="max-height:none;margin-top:10px"><table><thead><tr><th>ポジション</th><th class="num">ベース水準</th><th>主要能力（初期値の高い順）</th></tr></thead><tbody>
@@ -2683,14 +2695,8 @@ let OCR_APPEND=false;
 $('#ocrPick').onclick=()=>{OCR_APPEND=false;$('#ocrFile').click();};
 $('#ocrAdd').onclick=()=>{OCR_APPEND=true;$('#ocrFile').click();};
 $('#ocrFile').onchange=e=>{const fs=e.target.files; if(fs&&fs.length)ocrImages(fs,OCR_APPEND); e.target.value='';};
-$('#ocrPair').onchange=ocrReparse;
+$('#ocrSrc').onchange=ocrReparse;
 $('#baseReset').onclick=()=>{CUR.base=structuredClone(PRESET[CUR.pos]);renderBaseEdit();renderStats();toast(CUR.pos+' の初期能力値に戻しました');};
-$('#btnBelli').onclick=()=>{
-  CUR=Object.assign(blank(BELLINGHAM.pos),structuredClone(BELLINGHAM));
-  CUR.posSet=true; CUR.baseSet=true;
-  CUR.tp=Object.assign(Object.fromEntries(TCAT.map(c=>[c[0],0])),BELLINGHAM.rec);
-  FOCUS=null;LASTSTAT=null; renderAll(); toast('BTベリンガム＋推奨振り分けを読み込みました');
-};
 $('#btnResetBase').onclick=()=>{
   if(!CUR.skillsBase.length){toast('初期搭載スキルは選ばれていません');return;}
   CUR.skillsBase=[];renderSkillPick();renderStats();toast('初期搭載スキルをリセットしました');
