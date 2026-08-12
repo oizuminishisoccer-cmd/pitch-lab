@@ -148,7 +148,8 @@ tr.loghd td{background:var(--bg2);color:var(--tx);font-weight:800;font-size:12px
 .bsc b{position:absolute;top:5px;font-size:8.5px;font-weight:600;color:var(--tx3);transform:translateX(-50%);line-height:1}
 /* ±1 ボタン（スライダーをドラッグしなくても細かく直せる） */
 .stp{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--card2);
-  color:var(--info);font-size:14px;font-weight:800;line-height:1;cursor:pointer;padding:0}
+  color:var(--info);font-size:14px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+  touch-action:none;user-select:none;-webkit-user-select:none}
 .stp:hover{border-color:var(--info)}
 .stp:active{background:rgba(74,168,255,.2)}
 /* 入力もれの強調 */
@@ -630,6 +631,9 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
       <div class="muted" style="margin-top:6px">※ モメンタムドリブル等の<b>特殊スキル</b>はスキル追加で獲得できないため一覧に含めていません。</div>
       <div class="hr"></div>
       <h3>ウィッシュリスト <span class="sub">欲しいスキルを選ぶと在庫と照合</span></h3>
+      <div class="btnrow" style="margin-bottom:8px">
+        <button class="btn s" id="btnWishClear">削除<span id="wishCnt" style="margin-left:5px"></span></button>
+      </div>
       <div id="wishBox" style="max-height:min(62vh,560px);overflow:auto"></div>
     </div>
     <div class="card">
@@ -1275,7 +1279,7 @@ function renderBaseEdit(){
         <input type="number" class="v" min="${BASE_MIN}" max="${BASE_MAX}" step="1" inputmode="numeric" enterkeyhint="next"
           value="${CUR.base[k]}" data-bv="${k}" data-bi2="${ORDER.length-1}" style="color:${vColor(CUR.base[k])}"></div>`;}).join('')+`</div>`
   ).join('')+`</div>`+
-    `<div class="muted" style="margin-top:8px">スライダー／<b>−＋ボタン（1ずつ）</b>／数値の直接入力で調整できます（${BASE_MIN}〜${BASE_MAX}）。`+
+    `<div class="muted" style="margin-top:8px">スライダー／<b>−＋ボタン（1ずつ・<span style="color:var(--info)">長押しで連続</span>）</b>／数値の直接入力で調整できます（${BASE_MIN}〜${BASE_MAX}）。`+
     `スマホでは入力後に<b>「改行（次へ）」</b>で次の能力へ進みます。ゲーム内の Lv.1 実数値に合わせるとシミュレーションが実機と一致します。`+
     `<br>入れ終わったら右上の<b style="color:var(--bad)">「入力を確定して閉じる」</b>を押してください。</div>`;
   const setBase=(k,v,from)=>{
@@ -1287,8 +1291,25 @@ function renderBaseEdit(){
     renderStats(); updateBaseHead();
   };
   $$('#baseEdit input[type=range]').forEach(i=>i.addEventListener('input',()=>setBase(i.dataset.bs,+i.value,'range')));
-  /* −＋ボタン：スライダーをドラッグしなくても1ずつ動かせる */
-  $$('#baseEdit [data-bstep]').forEach(b=>b.onclick=()=>setBase(b.dataset.bstep,(CUR.base[b.dataset.bstep]||0)+(+b.dataset.d),'btn'));
+  /* −＋ボタン：1タップで1ずつ、長押しで連続。押し続けるほど速くなる */
+  $$('#baseEdit [data-bstep]').forEach(b=>{
+    const k=b.dataset.bstep, d=+b.dataset.d;
+    let wait=null, rep=null;
+    const step=()=>setBase(k,(CUR.base[k]||0)+d,'btn');
+    const stop=()=>{clearTimeout(wait);clearInterval(rep);wait=rep=null;};
+    const start=e=>{
+      if(e&&e.button>0)return;
+      if(e&&e.preventDefault)e.preventDefault();
+      stop(); step();
+      wait=setTimeout(()=>{                       /* 0.4秒押し続けたら連続開始 */
+        let n=0;
+        rep=setInterval(()=>{ step(); if(++n===8){clearInterval(rep);rep=setInterval(step,45);} },110);
+      },400);
+    };
+    b.addEventListener('pointerdown',start);
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,stop));
+    b.addEventListener('click',e=>e.preventDefault());  /* pointerdown で処理ずみ */
+  });
   const inputs=$$('#baseEdit input.v');
   inputs.forEach(i=>{
     i.addEventListener('input',()=>{ if(i.value==='')return; setBase(i.dataset.bv,+i.value,'num'); });
@@ -2138,6 +2159,10 @@ function renderSkl(){
       arr.map(s=>`<span class="chip${DB.wish.includes(s)?' on':''}" data-wi="${esc(s)}">${esc(s)}</span>`).join('');
   }).join('');
   $$('#wishBox .chip').forEach(c=>c.onclick=()=>{tog(DB.wish,c.dataset.wi);save();renderSkl();});
+  /* 1つでも選んでいたら削除ボタンを赤く出す */
+  const wc=$('#btnWishClear'), wn=DB.wish.length;
+  if(wc){ wc.classList.toggle('d',wn>0); wc.disabled=!wn; }
+  if($('#wishCnt'))$('#wishCnt').textContent=wn?String(wn):'';
   /* 系統でしぼるプルダウン（初回だけ組み立てる） */
   const cs=$('#sCat');
   if(cs&&!cs.innerHTML)cs.innerHTML='<option value="">すべての系統</option>'+
@@ -2498,6 +2523,12 @@ $('#m_ms').addEventListener('change',()=>{if(DB.pin?.ms){DB.pin.ms=$('#m_ms').va
 $('#m_mf').addEventListener('change',()=>{if(DB.pin?.mf){DB.pin.mf=$('#m_mf').value;save();applyPins();}});
 $('#mAdd').onclick=addMatch;
 $('#mCsv').onclick=exportCsv;
+$('#btnWishClear').onclick=()=>{
+  if(!DB.wish.length){toast('ウィッシュリストは空です');return;}
+  askConfirm({title:'ウィッシュリストを削除',okText:'削除する',
+    html:`選択中の <b>${DB.wish.length}件</b> をウィッシュリストから外します。<br><span class="muted">在庫データは消えません。</span>`,
+    onOk:()=>{DB.wish=[];save();renderSkl();toast('ウィッシュリストを空にしました');}});
+};
 $('#sAdd').onclick=addStock;
 $('#sFilterAll').onclick=()=>{sFilter='all';renderSkl();};
 $('#sFilterStock').onclick=()=>{sFilter='stock';renderSkl();};
