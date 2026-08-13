@@ -72,9 +72,9 @@ textarea{resize:vertical;min-height:60px}
 .btn.p{background:linear-gradient(140deg,var(--ac),var(--ac2));color:#062012;border-color:transparent}
 .btn.d{color:var(--bad);border-color:#4a2b3a}
 .btn.s{padding:6px 10px;font-size:12px;border-radius:8px}
-/* スクショ/テキストから読み取る：目立つ塗りつぶし */
-.btn.ocr{background:linear-gradient(140deg,#4aa8ff,#7a5cff);color:#04101f;border-color:transparent;font-weight:800}
-.btn.ocr:hover{filter:brightness(1.08);border-color:transparent}
+/* スクショ/テキストから読み取る：他のボタンと同じ大きさで、色だけ変えて区別する */
+.btn.ocr{background:rgba(74,168,255,.18);color:#9ad8ff;border-color:rgba(74,168,255,.55);font-weight:700}
+.btn.ocr:hover{background:rgba(74,168,255,.3);border-color:rgba(74,168,255,.8)}
 .btn:disabled{opacity:.4;cursor:default}
 .btn:disabled:hover{border-color:var(--line)}
 /* 選択中のトグルボタン */
@@ -249,6 +249,11 @@ td.skck{text-align:center}
 td.skck .ck{font-style:normal;color:var(--ac);font-weight:800;font-size:14px}
 td.skck .nock{font-style:normal;color:#39414f}
 .cmpskleg{margin-top:9px;font-size:11.5px;color:var(--tx3);line-height:1.9}
+/* 読み取り結果：見出しは上に、反映ボタンは下に貼り付けて隠れないようにする */
+#ocrResult{scroll-margin-top:10px}
+.ocrbar{position:sticky;bottom:0;z-index:3;display:flex;gap:8px;justify-content:flex-end;
+  margin:10px -16px -16px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(20,25,34,0),var(--card) 26%);border-top:1px solid var(--line)}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .empty{padding:26px;text-align:center;color:var(--tx3);font-size:12.5px}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;background:var(--card2);border:1px solid var(--line);font-size:11.5px;margin:0 4px 4px 0;cursor:pointer;transition:.12s}
@@ -259,7 +264,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .chip.dis{opacity:.32;cursor:not-allowed}
 .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--ac);color:#062012;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,.5);font-size:13px}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-dialog{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:var(--r);padding:0;max-width:min(760px,94vw);width:100%}
+dialog{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:var(--r);padding:0;max-width:min(760px,94vw);width:100%;
+  max-height:min(88vh,900px);overflow:auto;overscroll-behavior:contain}
 dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
 .dlg{padding:16px}
 .dlghd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -419,7 +425,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
         <div class="btnrow">
           <button class="btn s" id="btnPreset">ポジション初期値に戻す</button>
           <button class="btn s p" id="btnBase">スライダー / 手入力で調整</button>
-          <button class="btn ocr" id="btnOcr">スクショ / テキストから読み取る</button>
+          <button class="btn s ocr" id="btnOcr">スクショ / テキストから読み取る</button>
         </div>
       </div>
 
@@ -430,7 +436,7 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
           <label class="f ps atk"><span>プレースタイル<i>（攻撃時）</i></span><select id="f_style"></select></label>
           <label class="f ps def"><span>プレースタイル<i>（守備時）</i></span><select id="f_style2"></select></label>
         </div>
-        <div class="muted" style="margin:-2px 0 9px">※ アップデートでプレースタイルが<b>攻撃時／守備時の2つ</b>になりました。守備時は現在<b>ファーストディフェンダー</b>のみ判明しています。</div>
+        <div class="muted" style="margin:-2px 0 9px">※ アップデートでプレースタイルが<b>攻撃時／守備時の2つ</b>になりました。どちらも既定は<b>ベーシック</b>です。</div>
         <div class="row">
           <label class="f"><span>身長 cm（任意）</span><input type="number" id="f_h" placeholder="—"></label>
           <label class="f"><span>体重 kg（任意）</span><input type="number" id="f_w" placeholder="—"></label>
@@ -722,17 +728,21 @@ dialog::backdrop{background:rgba(2,4,10,.75);backdrop-filter:blur(3px)}
     <button class="btn s" id="ocrPasteBtn">クリップボードから貼り付け</button></div>
 
   <div class="hr"></div>
-  <div class="note" style="margin-top:0"><b>② 画像から読み取る（任意）</b><br>
-    <span class="muted">スクショを直接読み取ります。<b>家庭用機版は1枚</b>、<b>モバイル版は複数枚</b>（スクロールして撮った分すべて）をまとめて選べます。
-    重なっている項目があっても大丈夫です。初回だけ文字認識エンジンを外部から読み込むため<b>通信が必要</b>で、数MBのダウンロードが発生します。</span></div>
+  <div class="note" style="margin-top:0"><b>② 画像から読み取る（<span style="color:var(--gold)">おまけ・精度は不安定</span>）</b><br>
+    <span class="muted"><b>家庭用機版の1枚</b>（オフェンス／ディフェンス／フィジカルが3列に並ぶ画面）は、
+    数字の<b>位置</b>から3列レイアウトを組み立てて対応づけます。<br>
+    <b>モバイル版</b>は画面ごとにどの能力が写っているか分からないため、画像だけでは正しく並べられません。
+    <b>①のテキスト貼り付け</b>（能力名ごと読み取れるので確実）をお使いください。<br>
+    初回だけ文字認識エンジンを外部から読み込むため<b>通信が必要</b>で、数MBのダウンロードが発生します。</span></div>
   <div class="btnrow">
     <button class="btn" id="ocrPick">スクショを選ぶ（複数可）</button>
     <button class="btn s" id="ocrAdd">追加で読み取る</button>
     <span id="ocrProg" class="muted" style="align-self:center"></span></div>
   <input type="file" id="ocrFile" accept="image/*" multiple style="display:none">
   <label class="f" style="margin-top:8px"><span>読み取り元</span><select id="ocrSrc">
-    <option value="mobile">モバイル版（複数枚・1行に「通常 ▶ 最大」）→ <b>通常だけ</b>を使う</option>
-    <option value="console">家庭用機版（1枚・数値は1つ）</option></select></label>
+    <option value="console">家庭用機版（1枚・3列レイアウト）</option>
+    <option value="mobile">モバイル版（1行に「通常 ▶ 最大」→ 通常だけを使う）</option>
+  </select></label>
 
   <div class="hr"></div>
   <div id="ocrResult"></div>
@@ -807,9 +817,14 @@ const ADJ={
  ST:['OMF','CF','LWG','RWG'],CF:['ST','LWG','RWG']
 };
 
-const STYLES=['ラインブレイカー','ボックスストライカー','ターゲットマン','デコイラン','リンクフォワード','2列目からの飛び出し','ウイングストライカー','クロサー','インサイドレシーバー','ナンバー10','チャンスメイカー','プレーメイカー','ボックストゥボックス','ビルドアップ','ハードプレス','アンカー','オーバーラップ','インナーラップサイドバック','攻撃的サイドバック','守備的サイドバック','攻撃的GK','守備的GK','（なし）'];
-/* 守備時のプレースタイル（アップデートで追加）。現時点で判明しているのは1種類のみ */
-const STYLES_DEF=['（なし）','ファーストディフェンダー'];
+/* --- プレースタイル（アップデート後） --- */
+/* 攻撃時。既定は「ベーシック」 */
+const STYLE_NONE='ベーシック';
+const STYLES=['ベーシック','ラインブレイカー','ボックスストライカー','ターゲットマン','デコイラン','リンクフォワード','2列目からの飛び出し','ウイングストライカー','クロサー','インサイドレシーバー','ナンバー10','チャンスメイカー','プレーメイカー','ボックストゥボックス','ビルドアップ','アンカー','オーバーラップ','インナーラップサイドバック','攻撃的サイドバック','守備的サイドバック','攻撃的GK','守備的GK','アドバンスドGK','（なし）'];
+/* 守備時のプレースタイル（アップデートで追加）。既定は「ベーシック」 */
+const STYLES_DEF=['ベーシック','ファーストディフェンダー','カバーシャドウ','アウトレットプレイヤー','ハードワーカー',
+ 'レーンブロッカー','ボックストゥボックス','アンカー','ハードプレス','カバーリング','ラインコントローラー',
+ '攻撃的GK','守備的GK','スイーパーGK','（なし）'];
 const LEVEL4=['低い','普通','高い','最高'];
 /* 調子の波：波が大きい順。既定は「小さい」 */
 const COND4=['大きい','普通','小さい'];
@@ -849,10 +864,10 @@ const BOOSTERS={
 };
 const BOOSTNAMES=Object.keys(BOOSTERS);
 /* --- エッジブースター（アップデートで追加） ---
-   ブースター2の枠に付けられ、選んだ能力ひとつが大幅に上昇する。
-   上昇値の正式な範囲が判明するまでは暫定で +1〜+8 としている */
+   ブースター2の枠に付けられ、選んだ能力ひとつが +6 される */
 const EDGE_NAME='エッジブースター';
-const EDGE_VALS=[1,2,3,4,5,6,7,8];
+const EDGE_VAL=6;
+const EDGE_VALS=[EDGE_VAL];
 const isEdge=s=>!!(s&&s.n===EDGE_NAME);
 const MAX_BOOSTER=2, MAX_MGR_BOOSTER=2;
 /* 監督ブースター＝スカッド全員の「能力値そのもの」を +1 するバフ。最大2つ */
@@ -1024,7 +1039,17 @@ function askConfirm(o){
   $('#dlg2Yes').onclick=()=>{d.close();o.onOk&&o.onOk();};
   if(typeof d.showModal==='function')d.showModal(); else d.setAttribute('open','');
 }
-let TO; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(TO);TO=setTimeout(()=>t.classList.remove('on'),2100);}
+/* モーダル（<dialog>）は最前面レイヤーに出るため、トーストもその中へ移して表示する。
+   そうしないと背景が暗くなったダイアログの下に隠れてしまう */
+let TO;
+function toast(m){
+  const t=$('#toast'); if(!t)return;
+  const dlgs=$$('dialog[open]');
+  const host=dlgs.length?dlgs[dlgs.length-1]:document.body;
+  if(t.parentNode!==host&&host.appendChild)host.appendChild(t);
+  t.textContent=m; t.classList.add('on');
+  clearTimeout(TO); TO=setTimeout(()=>t.classList.remove('on'),2100);
+}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* 日付はローカルタイムゾーン基準（JST等でもズレない） */
 const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);};
@@ -1036,7 +1061,7 @@ const dayDiff=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z
    最終値 ＝ 初期能力値(Lv.1) ＋ タレントポイント ＋ 選手ブースター ＋ 監督ブースター ＋ 監督適性補正
    ===================================================================== */
 function blank(pos='CF'){
-  return {id:null,name:'',pos,style:'（なし）',style2:'（なし）',height:'',weight:'',foot:'右足',
+  return {id:null,name:'',pos,style:STYLE_NONE,style2:STYLE_NONE,height:'',weight:'',foot:'右足',
     wff:'普通',wfa:'普通',cond:'小さい',inj:'普通',maxLv:0,
     boosters:[{n:'',v:3},{n:'',v:1}],
     mgr:{name:'',style:'ポゼッション',apt:0,b:[{k:'',v:MGR_BOOST_VAL},{k:'',v:MGR_BOOST_VAL}]},
@@ -1120,7 +1145,7 @@ function fillPosSel(){
   el.value=CUR.posSet?CUR.pos:'';
 }
 function initSelects(){
-  fillPosSel(); fillSel($('#f_style'),STYLES,CUR.style); fillSel($('#f_style2'),STYLES_DEF,CUR.style2||'（なし）');
+  fillPosSel(); fillSel($('#f_style'),STYLES,CUR.style); fillSel($('#f_style2'),STYLES_DEF,CUR.style2||STYLE_NONE);
   fillSel($('#f_wff'),LEVEL4,CUR.wff); fillSel($('#f_wfa'),LEVEL4,CUR.wfa);
   fillSel($('#f_cond'),COND4,CUR.cond); fillSel($('#f_inj'),INJ3,CUR.inj);
   $('#g_apt').innerHTML=MGR_APT_VALUES.map(v=>`<option value="${v}">${v?v:'適性なし（補正なし）'}</option>`).join('');
@@ -1177,7 +1202,7 @@ function bindBoosterSelects(root){
       const dup=arr.some((o,j)=>j!==i&&o&&o.n&&o.n===el.value);
       if(el.value&&dup){toast(`「${el.value}」はもう一方の枠で選択済みです`);renderBoosters();return;}
       s.n=el.value;
-      if(isEdge(s)){ if(!s.k)s.k=''; if(!EDGE_VALS.includes(+s.v))s.v=EDGE_VALS[0]; }
+      if(isEdge(s)){ if(!s.k)s.k=''; if(!EDGE_VALS.includes(+s.v))s.v=EDGE_VAL; }
       else delete s.k;
     } else if(el.dataset.bf==='k')s.k=el.value;
     else s.v=+el.value;
@@ -1186,6 +1211,8 @@ function bindBoosterSelects(root){
 }
 function renderBoosters(){
   const eg=CUR.boosters[2], edgeOn=isEdge(eg);
+  /* 上昇値が変わっても保存済みデータを最新の値にそろえる */
+  if(edgeOn&&!EDGE_VALS.includes(+eg.v))eg.v=EDGE_VAL;
   $('#boosterBox').innerHTML=[0,1].map(i=>
     boosterRow('ブースター '+(i+1),CUR.boosters[i]||{n:'',v:i?1:3},'p',i,BOOST_VALS[i],
       (CUR.boosters[i?0:1]||{}).n,false,edgeOn&&i===1)).join('')+
@@ -1196,14 +1223,14 @@ function renderBoosters(){
     (edgeOn?boosterRow(EDGE_NAME,eg,'p',2,EDGE_VALS,'',true):'')+
     `<div class="muted">ブースター1は<b>ビッグタイム等の +4</b> まで選べます。効果値ぶんだけ能力値の上限 ${STAT_CAP} を超えられます。`+
     `<br>同じブースターは<b>2枠に付けられません</b>（効果が二重に乗るのを防ぐため）。`+
-    `<br><b style="color:var(--pink)">${EDGE_NAME}</b>（新）は上のボタンから追加でき、選んだ<b>能力ひとつが大幅に上昇</b>します。`+
+    `<br><b style="color:var(--pink)">${EDGE_NAME}</b>（新）は上のボタンから追加でき、選んだ<b>能力ひとつが +${EDGE_VAL}</b> されます。`+
     (edgeOn?`<br><b style="color:var(--pink)">エッジブースターを付けているあいだは、ブースター2は選べません。</b>`:'')+
-    `<span class="muted">上昇値の正式な範囲は未判明のため、暫定で +${EDGE_VALS[0]}〜+${EDGE_VALS[EDGE_VALS.length-1]} を用意しています。</span></div>`;
+    `<span class="muted">効果値ぶんだけ能力値の上限 ${STAT_CAP} を超えられます（例：+${EDGE_VAL} なら ${STAT_CAP+EDGE_VAL} まで）。</span></div>`;
   bindBoosterSelects($('#boosterBox'));
   const be=$('#btnEdge');
   if(be)be.onclick=()=>{
     if(isEdge(CUR.boosters[2]))CUR.boosters.length=2;
-    else {CUR.boosters[1]={n:'',v:1}; CUR.boosters[2]={n:EDGE_NAME,k:'',v:EDGE_VALS[0]};}
+    else {CUR.boosters[1]={n:'',v:1}; CUR.boosters[2]={n:EDGE_NAME,k:'',v:EDGE_VAL};}
     renderBoosters();renderStats();
   };
 }
@@ -1477,6 +1504,8 @@ function renderOcrResult(r){
   box.innerHTML=`<div class="note ${r.mode==='name'?'g':''}" style="margin-top:0">`+
     (r.mode==='name'
       ? `能力名で対応づけました（<b>${r.found}項目</b>）。`
+      : r.mode==='layout'
+      ? `スクショの<b>3列レイアウト（オフェンス10／ディフェンス9／フィジカル7）</b>から組み立てました（<b>${r.found}項目</b>）。ズレていないか必ず確認してください。`
       : `能力名が読めなかったので<b>数字の並び順</b>で当てはめました（<b>${r.found}項目</b>）。ズレていないか必ず確認してください。`)+
     `　変更される項目：<b>${diff}</b></div>`+
     `<div class="scroll" style="max-height:340px"><table><thead><tr><th>能力</th><th class="num">現在</th><th class="num">読み取り</th></tr></thead><tbody>`+
@@ -1486,12 +1515,14 @@ function renderOcrResult(r){
         `<td class="num"><input type="number" class="v" data-ov="${k}" min="${BASE_MIN}" max="${BASE_MAX}" `+
         `value="${has?v:''}" placeholder="—" style="width:64px;text-align:right;color:${ch?'var(--ac)':'var(--tx3)'}"></td></tr>`;
     }).join('')+`</tbody></table></div>`+
-    `<div class="btnrow" style="margin-top:12px;justify-content:flex-end">
+    `<div class="ocrbar">
       <button class="btn s" id="ocrCancel">やめる</button>
       <button class="btn p" id="ocrApply">この内容で反映する</button></div>`;
   $$('#ocrResult [data-ov]').forEach(i=>i.addEventListener('input',()=>{
     const v=+i.value; OCRMAP[i.dataset.ov]=(i.value===''||isNaN(v))?null:clamp(Math.round(v),BASE_MIN,BASE_MAX);
   }));
+  /* 結果が画面の外に出てしまわないよう、描画後に見える位置まで送る */
+  try{ box.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
   $('#ocrCancel').onclick=()=>$('#dlgOcr').close();
   $('#ocrApply').onclick=()=>{
     let n=0;
@@ -1524,26 +1555,103 @@ function ocrReparse(){
   if(!t.trim()){renderOcrResult(null);return;}
   renderOcrResult(parseStatText(t,{pair:ocrPairMode()}));
 }
+
+/* ---------------------------------------------------------------
+   家庭用機版のスクショは「オフェンス10／ディフェンス9／フィジカル7」の
+   3列に並ぶ。数字だけを読むと順番が崩れるので、文字の座標から
+   列と行を組み立て直して能力に対応づける。
+   --------------------------------------------------------------- */
+const CONSOLE_COLS=[10,9,7];
+/* 等間隔に並んでいる部分だけを残す（ヘッダーの数字などを落とす） */
+function keepEvenRun(items,want){
+  if(items.length<=want)return items;
+  const gaps=[]; for(let i=1;i<items.length;i++)gaps.push(items[i].y-items[i-1].y);
+  const med=gaps.slice().sort((a,b)=>a-b)[Math.floor(gaps.length/2)]||1;
+  let best=[0,0], cur=0;
+  for(let i=0;i<gaps.length;i++){
+    if(gaps[i]>=med*0.55&&gaps[i]<=med*1.75){ if(best[1]-best[0]<i+1-cur)best=[cur,i+1]; }
+    else cur=i+1;
+  }
+  const run=items.slice(best[0],best[1]+1);
+  return (run.length>=want?run:items).slice(-want);
+}
+/* words=[{v,x,y}] から26項目を組み立てる */
+function parseOcrWords(words){
+  const cand=(words||[]).filter(w=>w.v>=BASE_MIN&&w.v<=BASE_MAX);
+  if(cand.length<15)return null;
+  const xs=cand.map(w=>w.x);
+  const span=Math.max(...xs)-Math.min(...xs)||1;
+  const tol=Math.max(span*0.06,20);
+  /* x の近いものを1列にまとめる */
+  const sorted=cand.slice().sort((a,b)=>a.x-b.x);
+  const groups=[]; let g=[sorted[0]];
+  for(let i=1;i<sorted.length;i++){
+    if(sorted[i].x-sorted[i-1].x>tol){groups.push(g);g=[];}
+    g.push(sorted[i]);
+  }
+  groups.push(g);
+  /* 数の多い3列を左から順に使う */
+  const cols=groups.filter(a=>a.length>=4).sort((a,b)=>b.length-a.length).slice(0,3)
+    .sort((a,b)=>a[0].x-b[0].x);
+  if(cols.length<3)return null;
+  const map={}, order=STATS.map(s=>s[0]);
+  let idx=0, ok=0;
+  cols.forEach((col,ci)=>{
+    const want=CONSOLE_COLS[ci];
+    const rows=keepEvenRun(col.slice().sort((a,b)=>a.y-b.y),want);
+    for(let i=0;i<want;i++){
+      const w=rows[i];
+      if(w){map[order[idx]]=w.v;ok++;}
+      idx++;
+    }
+  });
+  return {map,mode:'layout',named:0,found:ok,pair:false,
+    cols:cols.map(c=>c.length)};
+}
+/* 画像OCRのエンジンは使うときだけ外部から読み込む（既定ではオフライン動作を保つ） */
+async function recognizeWords(worker,file){
+  const {data}=await worker.recognize(file,{},{blocks:true});
+  const out=[];
+  const push=w=>{
+    const t=normNum(w.text||'').replace(/[^0-9]/g,'');
+    const b=w.bbox||{};
+    if(!t||b.x0==null)return;
+    out.push({v:+t,x:(b.x0+b.x1)/2,y:(b.y0+b.y1)/2});
+  };
+  (data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>(p.lines||[]).forEach(l=>(l.words||[]).forEach(push))));
+  if(!out.length&&data.words)data.words.forEach(push);
+  return {words:out,text:data.text||''};
+}
 async function ocrImages(files,append){
   const prog=$('#ocrProg');
   const say=m=>{if(prog)prog.textContent=m;};
   const list=[...files];
   if(!list.length)return;
+  const console1=($('#ocrSrc')&&$('#ocrSrc').value==='console');
   if(!append)OCRTEXT='';
   try{
     say('文字認識エンジンを読み込み中…');
     const T=await loadTesseract();
-    const w=await T.createWorker('eng',1,{logger:m=>{}});
+    const w=await T.createWorker('eng',1,{logger:()=>{}});
     /* 数字だけを読ませると精度が上がる */
     await w.setParameters({tessedit_char_whitelist:'0123456789'});
+    let words=[];
     for(let i=0;i<list.length;i++){
       say(`画像を解析中… ${i+1}/${list.length}枚目`);
-      const {data:{text}}=await w.recognize(list[i]);
-      OCRTEXT+=(OCRTEXT?'\n':'')+text;
+      const r=await recognizeWords(w,list[i]);
+      words=words.concat(r.words);
+      OCRTEXT+=(OCRTEXT?'\n':'')+r.text;
     }
     await w.terminate();
-    say(`${list.length}枚を読み取りました`);
-    ocrReparse();
+    /* 家庭用機版の1枚なら、座標から3列レイアウトを組み立て直す */
+    const byLayout=console1&&list.length===1?parseOcrWords(words):null;
+    if(byLayout&&byLayout.found>=20){
+      say(`レイアウトから ${byLayout.found}項目を読み取りました`);
+      renderOcrResult(byLayout);
+    }else{
+      say(`${list.length}枚を読み取りました`);
+      ocrReparse();
+    }
   }catch(e){
     say('');
     toast('画像から読み取れませんでした。通信環境を確認するか、テキスト貼り付けをお試しください');
@@ -1622,7 +1730,7 @@ function renderStats(){
     <div><span>ポジション</span><b>${esc(CUR.pos)}</b></div>
     <div><span>逆足 頻度／精度</span><b>${esc(CUR.wff)} ／ ${esc(CUR.wfa)}</b></div>
     <div><span>調子の波 / ケガ耐性</span><b>${esc(CUR.cond)} / ${esc(CUR.inj)}</b></div>
-    <div><span>守備時スタイル</span><b>${esc(CUR.style2||'（なし）')}</b></div>
+    <div><span>守備時スタイル</span><b>${esc(CUR.style2||STYLE_NONE)}</b></div>
     <div><span>Lv / 使用TP</span><b>${CUR.maxLv} / ${tpUsed()}</b></div>
     <div><span>適性</span><b>${apt.map(([p,v])=>v===2?p:`(${p})`).join(' ')||'—'}</b></div>
     <div><span>監督適性</span><b>${m.apt?'適性 '+m.apt:'なし'}</b></div>`;
@@ -1766,7 +1874,7 @@ function syncFromForm(){
   renderStats();
 }
 function syncToForm(){
-  $('#f_name').value=CUR.name; fillPosSel(); fillSel($('#f_style'),STYLES,CUR.style); fillSel($('#f_style2'),STYLES_DEF,CUR.style2||'（なし）');
+  $('#f_name').value=CUR.name; fillPosSel(); fillSel($('#f_style'),STYLES,CUR.style); fillSel($('#f_style2'),STYLES_DEF,CUR.style2||STYLE_NONE);
   $('#f_h').value=CUR.height; $('#f_w').value=CUR.weight; fillSel($('#f_foot'),['右足','左足'],CUR.foot);
   fillSel($('#f_wff'),LEVEL4,CUR.wff); fillSel($('#f_wfa'),LEVEL4,CUR.wfa);
   fillSel($('#f_cond'),COND4,CUR.cond); fillSel($('#f_inj'),INJ3,CUR.inj);
@@ -1795,7 +1903,7 @@ function renderLib(){
   </tr></thead><tbody>`+L.map(p=>`<tr>
     <td><input type="checkbox" class="cmpck" value="${p.id}"></td>
     <td><b>${esc(p.name)}</b></td><td><span class="pill g">${esc(p.pos)}</span></td>
-    <td>${esc(p.style)}${p.style2&&p.style2!=='（なし）'?' / '+esc(p.style2):''}</td><td class="num"><b>${p.ovr}</b></td><td class="num">${p.maxLv}</td>
+    <td>${esc(p.style)}${p.style2&&p.style2!==STYLE_NONE&&p.style2!=='（なし）'?' / '+esc(p.style2):''}</td><td class="num"><b>${p.ovr}</b></td><td class="num">${p.maxLv}</td>
     <td class="num">${tpUsed(p)}</td>
     <td>${esc((p.boosters||[]).filter(b=>b.n).map(b=>b.n+'+'+b.v).join(' / ')||'—')}</td>
     <td>${mgrOf(p).apt||'—'}</td>
@@ -1836,8 +1944,8 @@ const footCell=p=>{const R=(p.foot||'右足')==='右足';
          `<span class="footbox${R?' on':''}">${footMark('R',R)}<i>右</i></span></span>`;};
 /* 選手情報の行（プレースタイル・利き足・コンディション等）。value=HTMLをそのまま入れる行 */
 const CMP_INFO=[
-  ['プレースタイル（攻撃時）',p=>esc(p.style||'（なし）')],
-  ['プレースタイル（守備時）',p=>esc(p.style2||'（なし）')],
+  ['プレースタイル（攻撃時）',p=>esc(p.style||STYLE_NONE)],
+  ['プレースタイル（守備時）',p=>esc(p.style2||STYLE_NONE)],
   ['利き足',footCell],
   ['逆足 頻度',p=>esc(p.wff||'—')],
   ['逆足 精度',p=>esc(p.wfa||'—')],
@@ -1927,7 +2035,7 @@ function shareText(){
   const bo=(CUR.boosters||[]).filter(b=>b.n).map(b=>`${b.n}+${b.v}`).join(' / ')||'なし';
   const m=mgrOf(CUR);
   return `⚽ ${CUR.name||'無名'}【${CUR.pos}】推定総合 ${ov}
-プレースタイル：攻 ${CUR.style} / 守 ${CUR.style2||'（なし）'}
+プレースタイル：攻 ${CUR.style} / 守 ${CUR.style2||STYLE_NONE}
 Lv.${CUR.maxLv}／TP ${tpUsed()}pt
 振り分け：${tps||'なし'}
 ブースター：${bo}
@@ -2046,7 +2154,7 @@ async function sharePng(){
 
   /* ===== ヘッダー左：選手情報 ===== */
   T((CUR.name||'無名').slice(0,13),L,76,F(800,40),'#ffd400');
-  T(`【${CUR.pos}】`+(CUR.style==='（なし）'?'':CUR.style),L,106,F(700,20),'#ffd400');
+  T(`【${CUR.pos}】`+(CUR.style==='（なし）'||CUR.style===STYLE_NONE?'':CUR.style),L,106,F(700,20),'#ffd400');
   const m1=[CUR.foot,CUR.height?CUR.height+'cm':'',CUR.weight?CUR.weight+'kg':''].filter(Boolean).join(' / ');
   T(m1,L,150,F(700,26),'#c3ccdb');
   T(`Lv.${CUR.maxLv}`,L,186,F(700,26),'#c3ccdb');
@@ -2550,9 +2658,10 @@ $('#helpBody').innerHTML=`
   ${MGR_APT.map(r=>`<tr><td><b>${r[0]}</b>${r[0]===90?' <span class="pill y">最高</span>':''}</td><td class="num">40〜${r[1]}</td><td class="num">${r[1]+1}〜${r[2]}</td><td class="num">${r[2]+1}〜</td></tr>`).join('')}
   </tbody></table></div>
   <div class="note" style="margin-top:12px;border-color:var(--pink);background:rgba(255,46,120,.07)">
-    <b style="color:var(--pink)">アップデートで追加（枠組みのみ）</b><br>
-    ・プレースタイルが<b>攻撃時／守備時の2つ</b>になりました（見出しの「（攻撃時）」は薄い赤、「（守備時）」は薄い水色）。守備時は現在 <b>ファーストディフェンダー</b> のみ判明しています。<br>
-    ・<b>エッジブースター</b>は<b>ブースター2の効果値（+1）の下のボタン</b>から追加できます。選んだ<b>能力ひとつが大幅に上昇</b>し、<b>付けているあいだブースター2は選べません</b>（上昇値は暫定で +1〜+8）。<br>
+    <b style="color:var(--pink)">アップデート対応</b><br>
+    ・プレースタイルが<b>攻撃時／守備時の2つ</b>になりました（見出しの「（攻撃時）」は薄い赤、「（守備時）」は薄い水色）。どちらも既定は <b>ベーシック</b>。
+    攻撃時は<b>ハードプレスを削除</b>し<b>アドバンスドGK</b>を追加、守備時は <b>ファーストディフェンダー／カバーシャドウ／アウトレットプレイヤー／ハードワーカー／レーンブロッカー／ボックストゥボックス／アンカー／ハードプレス／カバーリング／ラインコントローラー／攻撃的GK／守備的GK／スイーパーGK</b> の13種です。<br>
+    ・<b>エッジブースター</b>は<b>ブースター2の効果値（+1）の下のボタン</b>から追加できます。選んだ<b>能力ひとつが +6</b> され、<b>付けているあいだブースター2は選べません</b>。<br>
     ・ブースター1の効果値に <b>+5</b> を追加しました。</div>
   <div class="note" style="margin-top:12px"><b>② 監督ブースター（バフ）</b><br>
     選手ブースターと違い、<b>指定された能力値そのもの</b>（オフェンスセンス等）がスカッド全員 <b>+${MGR_BOOST_VAL}</b> されます。監督は<b>最大2つ</b>持ちます。</div>
@@ -2580,9 +2689,10 @@ $('#helpBody').innerHTML=`
   <div class="note" style="margin-top:8px"><b>スクショ／テキストから読み取る</b><br>
     <b>① テキスト貼り付け（おすすめ）</b>…iPhoneは写真を長押し →「テキストを認識」→ コピー、Macは写真アプリ／プレビューで文字を選択してコピー、Androidは Google レンズ。
     貼り付けると<b>能力名で対応づけ</b>して26項目をまとめて入力します（能力名が読めていない場合は<b>数字の並び順</b>で割り当てます）。オフラインでも使えます。<br>
-    <b>② 画像から読み取る</b>…スクショを直接解析します。<b>読み取り元</b>で「モバイル版（複数枚）」「家庭用機版（1枚）」を選んでください。
-    モバイル版は1行に「通常 ▶ 最大」が並ぶので<b>通常（Lv.1の値）だけ</b>を使い、家庭用機版は数値が1つとして読み取ります。「追加で読み取る」で後から枚数を足せます。
-    初回だけ文字認識エンジンを外部から読み込むため<b>通信が必要</b>で、数MBのダウンロードが発生します。ゲームのフォントは誤認識も出るため、反映前のプレビューで必ず確認してください。<br>
+    <b>② 画像から読み取る（おまけ）</b>…<b>家庭用機版の1枚</b>（オフェンス／ディフェンス／フィジカルが3列に並ぶ画面）は、数字の<b>位置</b>から
+    「オフェンス10／ディフェンス9／フィジカル7」の3列を組み立てて対応づけます。
+    <b>モバイル版は画像だけでは正しく並べられません</b>（どの能力が写っているか数字からは判断できないため）。①のテキスト貼り付けをお使いください。
+    初回だけ文字認識エンジンを外部から読み込むため<b>通信が必要</b>で、数MBのダウンロードが発生します。誤認識も出るため、反映前のプレビューで必ず確認してください。<br>
     どちらも反映前に<b>「現在」と「読み取り」を並べたプレビュー</b>が出て、その場で数値を直せます。</div>
   <div class="scroll" style="max-height:none;margin-top:10px"><table><thead><tr><th>ポジション</th><th class="num">ベース水準</th><th>主要能力（初期値の高い順）</th></tr></thead><tbody>
   ${POS.map(p=>`<tr><td><b>${p}</b></td><td class="num">${baseLevel(p)}</td><td style="white-space:normal">${keyStats(p,5).map(k=>`${SNAME[k]} <b style="color:${vColor(PRESET[p][k])}">${PRESET[p][k]}</b>`).join('／')}</td></tr>`).join('')}
